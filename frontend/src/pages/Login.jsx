@@ -8,7 +8,8 @@ function Login() {
   const handleLogin = async () => {
     try {
       const res = await API.post("/auth/login", form);
-      localStorage.setItem("user", JSON.stringify(res.data));
+     localStorage.setItem("user", JSON.stringify(res.data));
+localStorage.setItem("token", res.data.token);
       window.location.href = "/dashboard";
     } catch (error) {
       alert(error.response?.data?.message || "Error");

@@ -4,6 +4,7 @@ const API = axios.create({
   baseURL: "https://d-remindu.onrender.com/api"
 });
 
+// ✅ ADD THIS INTERCEPTOR
 API.interceptors.request.use((req) => {
   const token = localStorage.getItem("token");
 
