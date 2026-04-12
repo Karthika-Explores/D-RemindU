@@ -72,3 +72,16 @@ exports.markMissed = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+// 📊 Get all logs for a user
+exports.getLogs = async (req, res) => {
+  try {
+    // req.user comes from your 'protect' middleware
+    const logs = await Log.find({ userId: req.user })
+      .populate("medicationId", "name") // This links the log to the medication name
+      .sort({ createdAt: -1 }); // Show newest first
+
+    res.json(logs);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
