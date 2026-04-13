@@ -208,7 +208,16 @@ function Dashboard() {
 
     fetchStats();
   };
-
+const allowedFields = [
+  "medicineName",
+  "dosage",
+  "instructions",
+  "reminderTime",
+  "totalTablets",
+  "tabletsPerDose",
+  "dosesPerDay",
+  "lowStockThreshold"
+];
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-100 to-blue-100 p-6">
 
@@ -296,16 +305,7 @@ function Dashboard() {
 
             {editingId === med._id ? (
               <>
-                const allowedFields = [
-  "medicineName",
-  "dosage",
-  "instructions",
-  "reminderTime",
-  "totalTablets",
-  "tabletsPerDose",
-  "dosesPerDay",
-  "lowStockThreshold"
-];
+                
 
 {allowedFields.map((field) => (
   <input
