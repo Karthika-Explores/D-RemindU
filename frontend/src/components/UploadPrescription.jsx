@@ -1,5 +1,6 @@
 import { useState } from "react";
 import API from "../services/api";
+import { uploadPrescription } from "../services/prescriptionapi";
 
 // 🔍 Extract medicines
 const extractMedicines = (text) => {
@@ -8,6 +9,15 @@ const extractMedicines = (text) => {
   return lines.filter(line =>
     line.match(/\b(mg|ml|tablet|capsule)\b/i)
   );
+};
+
+const handleUpload = async () => {
+  try {
+    const data = await uploadPrescription(file);
+    console.log("Success!", data);
+  } catch (error) {
+    console.error("Upload failed", error);
+  }
 };
 
 // 🧠 Convert text → structured data

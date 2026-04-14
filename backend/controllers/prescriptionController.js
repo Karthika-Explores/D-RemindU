@@ -1,50 +1,68 @@
-const axios = require("axios");
+const cloudinary = require("../config/cloudinary");
 const fs = require("fs");
+const axios = require("axios");
 const Prescription = require("../models/Prescription");
 
-// 📸 Upload + OCR
 exports.uploadPrescription = async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ message: "No file uploaded" });
     }
 
-    const filePath = req.file.path;
+    // 1. Upload to Cloudinary
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: "prescriptions",
+    });
 
-    const image = fs.readFileSync(filePath, { encoding: "base64" });
+    // 2. Perform OCR using the Cloudinary URL (More efficient than base64)
+    const ocrResponse = await axios.post(
+      "https://api.ocr.space/parse/image",
+      new URLSearchParams({
+        apikey: process.env.OCR_API_KEY,
+        url: result.secure_url,
+        language: "eng",
+        isOverlayRequired: false,
+      }).toString(),
+      {
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      }
+    );
 
-    const response = await axios.post(
-  "https://api.ocr.space/parse/image",
-  new URLSearchParams({
-    base64Image: `data:image/jpeg;base64,${image}`,
-    language: "eng"
-  }),
-  {
-    headers: {
-      apikey: process.env.OCR_API_KEY,
-      "Content-Type": "application/x-www-form-urlencoded"
+    // Safety check for OCR.space API errors
+    if (ocrResponse.data.IsErroredOnProcessing) {
+       throw new Error(ocrResponse.data.ErrorMessage || "OCR Processing failed");
     }
-  }
-);
 
     const extractedText =
-      response.data.ParsedResults?.[0]?.ParsedText || "No text found";
+      ocrResponse.data.ParsedResults?.[0]?.ParsedText || "No text found";
 
+    // 3. Save to DB using your specific Schema fields
     const prescription = new Prescription({
-  userId: req.user,
-  fileUrl: filePath,
-  extractedText: extractedText
-});
+      userId: req.user._id || req.user.id || req.user, // Compatible with standard authMiddleware
+      fileUrl: result.secure_url,
+      extractedText: extractedText,
+      isConfirmed: false // Defaulting to false for manual verification
+    });
 
-    await prescription.save(); // 🔥 VERY IMPORTANT
+    await prescription.save();
 
-    res.json({
-      message: "Prescription uploaded successfully",
-      extractedText,
-      prescription
+    // 4. Cleanup: Delete local file from /uploads
+    if (fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+
+    res.status(201).json({
+      message: "Prescription uploaded and processed successfully",
+      prescription,
     });
 
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    // Ensure local file cleanup even on failure
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    
+    console.error("Upload Error:", error);
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
 };

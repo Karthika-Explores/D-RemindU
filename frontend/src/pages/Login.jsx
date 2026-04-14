@@ -1,15 +1,15 @@
-const handleLogin = async () => {
-  try {
-    const res = await API.post("/auth/login", form);
+const token = localStorage.getItem("token");
 
-    console.log("LOGIN RESPONSE:", res.data); // 🔥 ADD THIS
+const formData = new FormData();
+formData.append("file", selectedFile);
 
-    localStorage.setItem("user", JSON.stringify(res.data));
-    localStorage.setItem("token", res.data.token);
-
-    window.location.href = "/dashboard";
-  } catch (error) {
-    console.log("LOGIN ERROR:", error.response); // 🔥 ADD THIS
-    alert(error.response?.data?.message || "Error");
+await axios.post(
+  "https://d-remindu.onrender.com/api/prescriptions/upload",
+  formData,
+  {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "multipart/form-data",
+    },
   }
-};
+);
