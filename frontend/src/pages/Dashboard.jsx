@@ -36,18 +36,25 @@ function Dashboard() {
   });
 
   useEffect(() => {
-    const stored = localStorage.getItem("extractedMeds");
-    if (stored) {
+  const stored = localStorage.getItem("extractedMeds");
+  if (stored) {
+    try {
       const data = JSON.parse(stored);
       if (data && data.length > 0) {
         setQueue(data);
-        // Merges extracted data into the form correctly
-        setForm(prev => ({ ...prev, ...data[0] })); 
+        // Use a functional update to ensure we merge into the current state
+        setForm(prevForm => ({
+          ...prevForm,
+          ...data[0] // This fills the medicineName, dosage, etc.
+        }));
       }
+    } catch (e) {
+      console.error("Error parsing extracted meds", e);
     }
-    fetchMeds();
-    fetchStats();
-  }, []);
+  }
+  fetchMeds();
+  fetchStats();
+}, []);
 
   // ✅ REMINDER SYSTEM
   useEffect(() => {
@@ -281,13 +288,7 @@ function Dashboard() {
       />
     ))}
   </div>
-  <button
-    onClick={handleAdd}
-    className="mt-3 bg-blue-600 text-white px-4 py-2 rounded"
-  >
-    Add Medication
-  </button>
-</div>
+  </div>
 
       {/* 📊 ANALYTICS */}
       <div className="bg-white p-4 rounded-xl shadow mb-6">
