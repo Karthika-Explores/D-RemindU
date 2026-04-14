@@ -1,5 +1,6 @@
 const Medication = require("../models/Medication");
-
+const medicines = await Medicine.find({ userId: req.user.id });
+res.json(medicines);
 // ✅ Get All Medications (FIXED: Added .id)
 exports.getMedications = async (req, res) => {
   try {

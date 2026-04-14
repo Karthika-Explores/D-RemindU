@@ -14,5 +14,7 @@ API.interceptors.request.use((req) => {
 
   return req;
 });
+await API.post("/medicines", data);
+fetchMedicines(); // ✅ refresh list
 
 export default API;
