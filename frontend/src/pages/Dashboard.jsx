@@ -36,19 +36,17 @@ function Dashboard() {
   });
 
   useEffect(() => {
-    try {
-        const storedData = localStorage.getItem("extractedMeds");
-        const parsedData = storedData ? JSON.parse(storedData) : null;
-
-        if (parsedData && Array.isArray(parsedData) && parsedData.length > 0) {
-            setQueue(parsedData);
-            setForm({ ...form, ...parsedData[0] }); // Merge with default form state
-        }
-    } catch (e) {
-        console.error("Failed to parse extractedMeds", e);
+  const stored = localStorage.getItem("extractedMeds");
+  if (stored) {
+    const data = JSON.parse(stored);
+    if (data.length > 0) {
+      setQueue(data);
+      // ✅ This line ensures the first extracted medicine fills the form
+      setForm(prev => ({ ...prev, ...data[0] })); 
     }
-    fetchMeds();
-    fetchStats();
+  }
+  fetchMeds();
+  fetchStats();
 }, []);
 
 
@@ -96,23 +94,24 @@ function Dashboard() {
 
   // ✅ TRIGGER (NO LOOP BUG)
   const triggerReminder = (med, type) => {
-    if (activeReminder) return;
+  if (activeReminder) return;
 
-    setActiveReminder({ ...med, type });
+  setActiveReminder({ ...med, type });
 
-    speakReminder(
-      type === "time"
-        ? med.medicineName
-        : `${med.medicineName} is running low`,
-      language
-    );
+  // Distinguish voice alerts based on the type
+  if (type === "time") {
+    speakReminder(med.medicineName, language);
+  } else if (type === "stock") {
+    speakReminder(`${med.medicineName} is running low`, language);
+  }
 
-    const timer = setTimeout(() => {
-      setActiveReminder(null);
-    }, 5 * 60 * 1000);
+  // Automatically hide the reminder popup after 5 minutes
+  const timer = setTimeout(() => {
+    setActiveReminder(null);
+  }, 5 * 60 * 1000);
 
-    setRepeatTimer(timer);
-  };
+  setRepeatTimer(timer);
+};
 
   const fetchMeds = async () => {
     const token = localStorage.getItem("token");
@@ -182,28 +181,35 @@ function Dashboard() {
   };
 
   // ✅ TAKEN (WITH TABLET INPUT)
-  const markTaken = async (med) => {
-    clearTimeout(repeatTimer);
-    setActiveReminder(null);
+ const markTaken = async (med) => {
+  clearTimeout(repeatTimer);
+  setActiveReminder(null);
 
-    const tablets = prompt("How many tablets taken?");
-    if (!tablets) return;
+  // Use the pre-set dose from your database, default to 1 if missing
+  const doseAmount = med.tabletsPerDose || 1; 
 
-    const updatedCount =
-      med.totalTablets - Number(tablets);
+  // Calculate new count and ensure it doesn't go below zero
+  const updatedCount = Math.max(0, med.totalTablets - Number(doseAmount));
 
+  try {
+    // 1. Update the medication stock in the database
     await API.put(`/medications/${med._id}`, {
       ...med,
       totalTablets: updatedCount
     });
 
+    // 2. Create the adherence log
     await API.post("/logs/taken", {
       medicationId: med._id
     });
 
+    // 3. Refresh the UI stats and list
     fetchMeds();
     fetchStats();
-  };
+  } catch (error) {
+    console.error("Failed to mark as taken:", error);
+  }
+};
 
   // ❌ MISSED → REPEAT AFTER 5 MIN
   const markMissed = async (id) => {
@@ -239,33 +245,6 @@ const allowedFields = [
       <div className="flex flex-wrap items-center gap-3 mb-4">
         <label className="font-semibold">Language:</label>
 
-{/* ADD */}
-<motion.div className="bg-white p-4 rounded-xl shadow mb-6">
-  <h2 className="font-bold mb-3">Add Medication</h2>
-
-  <div className="grid md:grid-cols-2 gap-3">
-    {/* ✅ ADD THE 'form &&' GUARD HERE */}
-    {form && Object.keys(form).map((field) => (
-      <input
-        key={field}
-        placeholder={field}
-        /* ✅ ADD '|| ""' HERE TO ENSURE VALUE IS NEVER NULL */
-        value={form[field] || ""} 
-        onChange={(e) =>
-          setForm({ ...form, [field]: e.target.value })
-        }
-        className="p-2 border rounded"
-      />
-    ))}
-  </div>
-
-  <button
-    onClick={handleAdd}
-    className="mt-3 bg-blue-600 text-white px-4 py-2 rounded"
-  >
-    Add Medication
-  </button>
-</motion.div>
         <select
           className="p-2 border rounded"
           value={language}
