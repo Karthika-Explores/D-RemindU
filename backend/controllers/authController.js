@@ -1,6 +1,7 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+
 // Generate Token
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -8,8 +9,8 @@ const generateToken = (id) => {
   });
 };
 
-// Register User
-exports.registerUser = async (req, res) => {
+// ✅ Register User
+const registerUser = async (req, res) => {
   try {
     const { name, email, password, age, weight, glucoseLevel } = req.body;
 
@@ -41,8 +42,8 @@ exports.registerUser = async (req, res) => {
   }
 };
 
-// Login User
-exports.loginUser = async (req, res) => {
+// ✅ Login User
+const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -62,18 +63,6 @@ exports.loginUser = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-module.exports = (req, res, next) => {
-  const token = req.header("Authorization")?.split(" ")[1];
 
-  if (!token) return res.status(401).json({ message: "No token" });
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    // Ensure you are attaching the object so .id works
-    req.user = decoded; 
-    next();
-  } catch (error) {
-    res.status(401).json({ message: "Invalid token" });
-  }
-};
+// ✅ ONLY ONE EXPORT (FIXED)
 module.exports = { registerUser, loginUser };
