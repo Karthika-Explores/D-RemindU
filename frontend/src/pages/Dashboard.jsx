@@ -35,17 +35,18 @@ function Dashboard() {
     adherence: 0
   });
 
-  useEffect(() => {
+  // Inside Dashboard.jsx
+useEffect(() => {
   const stored = localStorage.getItem("extractedMeds");
   if (stored) {
     try {
       const data = JSON.parse(stored);
       if (data && data.length > 0) {
         setQueue(data);
-        // Use a functional update to ensure we merge into the current state
+        // ✅ This functional update ensures the form fields populate immediately
         setForm(prevForm => ({
           ...prevForm,
-          ...data[0] // This fills the medicineName, dosage, etc.
+          ...data[0] 
         }));
       }
     } catch (e) {
@@ -244,6 +245,7 @@ function Dashboard() {
   ];
 
   return (
+    
     <div className="min-h-screen bg-gradient-to-br from-gray-100 to-blue-100 p-6">
       <h1 className="text-3xl font-bold mb-4 text-blue-700">Dashboard</h1>
 
