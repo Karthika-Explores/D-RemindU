@@ -35,27 +35,26 @@ function Dashboard() {
     adherence: 0
   });
 
-  // Inside Dashboard.jsx
-useEffect(() => {
-  const stored = localStorage.getItem("extractedMeds");
-  if (stored) {
-    try {
-      const data = JSON.parse(stored);
-      if (data && data.length > 0) {
-        setQueue(data);
-        // ✅ This functional update ensures the form fields populate immediately
-        setForm(prevForm => ({
-          ...prevForm,
-          ...data[0] 
-        }));
+  useEffect(() => {
+    const stored = localStorage.getItem("extractedMeds");
+    if (stored) {
+      try {
+        const data = JSON.parse(stored);
+        if (data && data.length > 0) {
+          setQueue(data);
+          // ✅ Merges extracted data into the form correctly
+          setForm(prevForm => ({
+            ...prevForm,
+            ...data[0] 
+          }));
+        }
+      } catch (e) {
+        console.error("Error parsing extracted meds", e);
       }
-    } catch (e) {
-      console.error("Error parsing extracted meds", e);
     }
-  }
-  fetchMeds();
-  fetchStats();
-}, []);
+    fetchMeds();
+    fetchStats();
+  }, []);
 
   // ✅ REMINDER SYSTEM
   useEffect(() => {
@@ -71,7 +70,6 @@ useEffect(() => {
 
         const [hh, mm] = med.reminderTime.split(":");
 
-        // ⏰ TIME REMINDER
         if (
           Number(hh) === h &&
           Number(mm) === m &&
@@ -81,7 +79,6 @@ useEffect(() => {
           triggerReminder(med, "time");
         }
 
-        // ⚠ LOW STOCK
         if (
           med.totalTablets <= med.lowStockThreshold &&
           !triggeredStock[med._id]
@@ -99,7 +96,6 @@ useEffect(() => {
     return () => clearInterval(interval);
   }, [medications, activeReminder]);
 
-  // ✅ TRIGGER REMINDER
   const triggerReminder = (med, type) => {
     if (activeReminder) return;
 
@@ -134,7 +130,7 @@ useEffect(() => {
     const res = await API.get("/logs");
     const logs = res.data;
 
-    const taken = logs.filter(l => l.status === "Taken").length; // Fixed case sensitivity to match Schema
+    const taken = logs.filter(l => l.status === "Taken").length;
     const missed = logs.filter(l => l.status === "Missed").length;
 
     const adherence =
@@ -145,7 +141,6 @@ useEffect(() => {
     setStats({ taken, missed, adherence });
   };
 
-  // ✅ ADD MEDICATION
   const handleAdd = async () => {
     await API.post("/medications", {
       ...form,
@@ -178,7 +173,6 @@ useEffect(() => {
     alert("Medication added");
   };
 
-  // ✅ EDIT MEDICATION
   const startEdit = (med) => {
     setEditingId(med._id);
     setEditForm(med);
@@ -197,12 +191,10 @@ useEffect(() => {
     fetchMeds();
   };
 
-  // ✅ TAKEN (AUTOMATED - NO PROMPT)
   const markTaken = async (med) => {
     clearTimeout(repeatTimer);
     setActiveReminder(null);
 
-    // Automatically uses tabletsPerDose from your model
     const doseAmount = med.tabletsPerDose || 1; 
     const updatedCount = Math.max(0, med.totalTablets - Number(doseAmount));
 
@@ -212,9 +204,7 @@ useEffect(() => {
         totalTablets: updatedCount
       });
 
-      await API.post("/logs/taken", {
-        medicationId: med._id
-      });
+      await API.post("/logs/taken", { medicationId: med._id });
 
       fetchMeds();
       fetchStats();
@@ -223,19 +213,12 @@ useEffect(() => {
     }
   };
 
-  // ❌ MISSED
   const markMissed = async (id) => {
     clearTimeout(repeatTimer);
     setActiveReminder(null);
-
     await API.post("/logs/missed", { medicationId: id });
-
     const med = medications.find(m => m._id === id);
-
-    setTimeout(() => {
-      triggerReminder(med, "time");
-    }, 5 * 60 * 1000);
-
+    setTimeout(() => { triggerReminder(med, "time"); }, 5 * 60 * 1000);
     fetchStats();
   };
 
@@ -245,7 +228,6 @@ useEffect(() => {
   ];
 
   return (
-    
     <div className="min-h-screen bg-gradient-to-br from-gray-100 to-blue-100 p-6">
       <h1 className="text-3xl font-bold mb-4 text-blue-700">Dashboard</h1>
 
@@ -275,22 +257,29 @@ useEffect(() => {
       </div>
 
       <p className="text-red-500 mb-4">⚠ Reminder only. Follow doctor advice.</p>
-{/* ✅ Ensure the TOP card looks like this: */}
-<div className="bg-white p-4 rounded-xl shadow mb-6">
-  <h2 className="font-bold mb-3">Add Medication</h2>
-  <div className="grid md:grid-cols-2 gap-3">
-    {allowedFields.map((field) => (
-      <input
-        key={field}
-        placeholder={field}
-        /* This line ensures extracted data from localStorage appears here */
-        value={form[field] || ""} 
-        onChange={(e) => setForm({ ...form, [field]: e.target.value })}
-        className="p-2 border rounded"
-      />
-    ))}
-  </div>
-  </div>
+
+      {/* ✅ ADD MEDICATION SECTION (ONLY ONE INSTANCE) */}
+      <div className="bg-white p-4 rounded-xl shadow mb-6">
+        <h2 className="font-bold mb-3 text-lg">Add Medication</h2>
+        <div className="grid md:grid-cols-2 gap-3">
+          {allowedFields.map((field) => (
+            <input
+              key={field}
+              placeholder={field}
+              // ✅ This ensures the extracted text appears in the input
+              value={form[field] || ""} 
+              onChange={(e) => setForm({ ...form, [field]: e.target.value })}
+              className="p-2 border rounded focus:ring-2 focus:ring-blue-400 outline-none"
+            />
+          ))}
+        </div>
+        <button
+          onClick={handleAdd}
+          className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition"
+        >
+          Add Medication
+        </button>
+      </div>
 
       {/* 📊 ANALYTICS */}
       <div className="bg-white p-4 rounded-xl shadow mb-6">
@@ -309,7 +298,7 @@ useEffect(() => {
       {/* 💊 MEDICATION LIST */}
       <div className="grid md:grid-cols-3 gap-4">
         {medications.map((med) => (
-          <div key={med._id} className="bg-white p-4 rounded-xl shadow">
+          <div key={med._id} className="bg-white p-4 rounded-xl shadow border-t-4 border-blue-500">
             {editingId === med._id ? (
               <>
                 {allowedFields.map((field) => (
@@ -322,26 +311,26 @@ useEffect(() => {
                 ))}
                 <button
                   onClick={handleUpdate}
-                  className="bg-green-500 text-white px-3 py-1 rounded"
+                  className="bg-green-500 text-white px-3 py-1 rounded w-full"
                 >
-                  Save
+                  Save Changes
                 </button>
               </>
             ) : (
               <>
-                <h3 className="font-bold text-lg">{med.medicineName}</h3>
-                <p>Dosage: {med.dosage}</p>
-                <p>Time: {med.reminderTime?.slice(0, 5) || "-"}</p>
-                <p>Stock: {med.totalTablets} tablets</p>
+                <h3 className="font-bold text-lg text-gray-800">{med.medicineName}</h3>
+                <p className="text-sm text-gray-600">Dosage: {med.dosage}</p>
+                <p className="text-sm text-gray-600">Time: {med.reminderTime?.slice(0, 5) || "-"}</p>
+                <p className="text-sm font-semibold mt-1">Stock: {med.totalTablets} left</p>
 
                 {med.totalTablets <= med.lowStockThreshold && (
-                  <p className="text-red-500 font-bold">⚠ Low Stock</p>
+                  <p className="text-red-500 font-bold text-xs animate-pulse">⚠ Low Stock Alert</p>
                 )}
 
                 <div className="flex gap-2 mt-4">
-                  <button onClick={() => markTaken(med)} className="bg-green-500 text-white px-3 py-1 rounded">Taken</button>
-                  <button onClick={() => markMissed(med._id)} className="bg-red-500 text-white px-3 py-1 rounded">Missed</button>
-                  <button onClick={() => startEdit(med)} className="bg-yellow-400 px-3 py-1 rounded">Edit</button>
+                  <button onClick={() => markTaken(med)} className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded flex-1">Taken</button>
+                  <button onClick={() => markMissed(med._id)} className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded flex-1">Missed</button>
+                  <button onClick={() => startEdit(med)} className="bg-yellow-400 hover:bg-yellow-500 px-3 py-1 rounded">Edit</button>
                 </div>
               </>
             )}
@@ -349,21 +338,21 @@ useEffect(() => {
         ))}
       </div>
 
-      {/* 🚨 MODAL POPUP */}
+      {/* 🚨 REMINDER MODAL */}
       {activeReminder && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
-          <div className="bg-white p-6 rounded-xl shadow-xl text-center w-80">
-            <h2 className="text-xl font-bold mb-2">
-              {activeReminder.type === "time" ? "Medication Reminder" : "Low Stock Alert"}
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+          <div className="bg-white p-8 rounded-2xl shadow-2xl text-center w-96">
+            <h2 className="text-2xl font-bold mb-4 text-gray-800">
+              {activeReminder.type === "time" ? "⏰ Medication Time!" : "⚠ Stock Running Low!"}
             </h2>
-            <p className="mb-4">
+            <p className="text-lg text-gray-700 mb-6">
               {activeReminder.type === "time"
-                ? `Take your ${activeReminder.medicineName}`
-                : `Your ${activeReminder.medicineName} is running low!`}
+                ? `Please take your ${activeReminder.medicineName}.`
+                : `Your supply of ${activeReminder.medicineName} is almost empty.`}
             </p>
-            <div className="flex justify-center gap-3">
-              <button onClick={() => markTaken(activeReminder)} className="bg-green-500 text-white px-4 py-2 rounded shadow">Taken</button>
-              <button onClick={() => markMissed(activeReminder._id)} className="bg-red-500 text-white px-4 py-2 rounded shadow">Missed</button>
+            <div className="flex justify-center gap-4">
+              <button onClick={() => markTaken(activeReminder)} className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-xl font-bold">Taken</button>
+              <button onClick={() => markMissed(activeReminder._id)} className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-xl font-bold">Missed</button>
             </div>
           </div>
         </div>
