@@ -266,6 +266,28 @@ function Dashboard() {
       </div>
 
       <p className="text-red-500 mb-4">⚠ Reminder only. Follow doctor advice.</p>
+{/* ✅ Ensure the TOP card looks like this: */}
+<div className="bg-white p-4 rounded-xl shadow mb-6">
+  <h2 className="font-bold mb-3">Add Medication</h2>
+  <div className="grid md:grid-cols-2 gap-3">
+    {allowedFields.map((field) => (
+      <input
+        key={field}
+        placeholder={field}
+        /* This line ensures extracted data from localStorage appears here */
+        value={form[field] || ""} 
+        onChange={(e) => setForm({ ...form, [field]: e.target.value })}
+        className="p-2 border rounded"
+      />
+    ))}
+  </div>
+  <button
+    onClick={handleAdd}
+    className="mt-3 bg-blue-600 text-white px-4 py-2 rounded"
+  >
+    Add Medication
+  </button>
+</div>
 
       {/* 📊 ANALYTICS */}
       <div className="bg-white p-4 rounded-xl shadow mb-6">
@@ -280,28 +302,6 @@ function Dashboard() {
         </div>
         <p className="mt-2 font-semibold">Adherence: {stats.adherence}%</p>
       </div>
-
-      {/* ✅ ADD MEDICATION FORM (ONLY ONE INSTANCE) */}
-      <motion.div className="bg-white p-4 rounded-xl shadow mb-6">
-        <h2 className="font-bold mb-3">Add Medication</h2>
-        <div className="grid md:grid-cols-2 gap-3">
-          {allowedFields.map((field) => (
-            <input
-              key={field}
-              placeholder={field}
-              value={form[field] || ""}
-              onChange={(e) => setForm({ ...form, [field]: e.target.value })}
-              className="p-2 border rounded"
-            />
-          ))}
-        </div>
-        <button
-          onClick={handleAdd}
-          className="mt-3 bg-blue-600 text-white px-4 py-2 rounded"
-        >
-          Add Medication
-        </button>
-      </motion.div>
 
       {/* 💊 MEDICATION LIST */}
       <div className="grid md:grid-cols-3 gap-4">
