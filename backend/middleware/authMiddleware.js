@@ -1,6 +1,6 @@
 // middleware/authMiddleware.js
 const jwt = require('jsonwebtoken');
-
+const meds = await Medication.find({ userId: req.user.id });
 const protect = async (req, res, next) => {
   let token;
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
@@ -16,5 +16,6 @@ const protect = async (req, res, next) => {
   } else {
     res.status(401).json({ message: 'No token' });
   }
+  console.log("Decoded User from Token:", req.user);
 };
 module.exports = protect;
