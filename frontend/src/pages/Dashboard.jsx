@@ -115,13 +115,14 @@ function Dashboard() {
   };
 
   const fetchMeds = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return; // Don't call API if not logged in
+    
     try {
         const res = await API.get("/medications");
-        // Ensure we always set an array
         setMedications(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
-        console.error("Fetch Meds Error:", err);
-        setMedications([]); // Prevent .map crash
+        console.error("Fetch Error:", err);
     }
 };
 
