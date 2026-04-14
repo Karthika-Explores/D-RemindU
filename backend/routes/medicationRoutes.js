@@ -10,7 +10,7 @@ const {
 } = require("../controllers/medicationController");
 
 console.log("Protect Middleware:", protect);
-console.log("AddMedication Controller:", addMedication);
+console.log("AddMedication Controller:", addMedications);
 router.post("/", protect, addMedication);
 router.get("/", protect, getMedication);
 router.put("/:id", protect, updateMedication);

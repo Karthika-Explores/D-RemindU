@@ -1,5 +1,22 @@
 const Medication = require("../models/Medication");
 
+// Add this to controllers/medicationController.js
+exports.addMedication = async (req, res) => {
+  try {
+    const { name, dosage, frequency, timings } = req.body;
+    const newMed = new Medication({
+      userId: req.user.id || req.user._id,
+      name,
+      dosage,
+      frequency,
+      timings
+    });
+    const savedMed = await newMed.save();
+    res.status(201).json(savedMed);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 // ✅ Get All Medications
 exports.getMedications = async (req, res) => {
   try {
