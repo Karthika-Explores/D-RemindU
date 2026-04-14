@@ -10,7 +10,14 @@ const extractMedicines = (text) => {
     line.match(/\b(mg|ml|tablet|capsule)\b/i)
   );
 };
+// Inside handleUpload, update this part:
+const extractedText = data.extractedText || ""; // Fallback to empty string
+setText(extractedText);
 
+if (extractedText.trim() === "") {
+    alert("No text could be extracted from this image.");
+    return;
+}
 // 🧠 Helper: Convert a single text line into an object
 const parseMedicine = (line) => {
   const parts = line.split(" ");
