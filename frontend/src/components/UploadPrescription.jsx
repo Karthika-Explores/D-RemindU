@@ -86,5 +86,8 @@ function UploadPrescription() {
     </div>
   );
 }
+// In UploadPrescription.jsx inside handleUpload function:
+const formData = new FormData();
+formData.append("image", file); // Change "file" to "image" to match backend
 
 export default UploadPrescription;
