@@ -10,7 +10,7 @@ exports.addMedication = async (req, res) => {
     } = req.body;
 
     const medication = await Medication.create({
-      userId: req.user, // Strictly use the logged-in user's ID from the token
+      userId: req.user.id || req.user, // Strictly use the logged-in user's ID from the token
       medicineName,
       dosage,
       instructions,
