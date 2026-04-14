@@ -14,7 +14,10 @@ API.interceptors.request.use((req) => {
 
   return req;
 });
-await API.post("/medicines", data);
-fetchMedicines(); // ✅ refresh list
+// api.js
+export const fetchMedications = async () => {
+    const response = await API.get("/medications");
+    return response.data; // Ensure you use response.data, not just 'data'
+};
 
 export default API;

@@ -36,16 +36,21 @@ function Dashboard() {
   });
 
   useEffect(() => {
-    const data = JSON.parse(localStorage.getItem("extractedMeds"));
+    try {
+        const storedData = localStorage.getItem("extractedMeds");
+        const parsedData = storedData ? JSON.parse(storedData) : null;
 
-    if (data && data.length > 0) {
-      setQueue(data);
-      setForm(data[0]);
+        if (parsedData && Array.isArray(parsedData) && parsedData.length > 0) {
+            setQueue(parsedData);
+            setForm({ ...form, ...parsedData[0] }); // Merge with default form state
+        }
+    } catch (e) {
+        console.error("Failed to parse extractedMeds", e);
     }
-
     fetchMeds();
     fetchStats();
-  }, []);
+}, []);
+
 
   // ✅ REMINDER SYSTEM (FIXED PROPERLY)
   useEffect(() => {
@@ -110,9 +115,15 @@ function Dashboard() {
   };
 
   const fetchMeds = async () => {
-    const res = await API.get("/medications");
-    setMedications(res.data);
-  };
+    try {
+        const res = await API.get("/medications");
+        // Ensure we always set an array
+        setMedications(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+        console.error("Fetch Meds Error:", err);
+        setMedications([]); // Prevent .map crash
+    }
+};
 
   const fetchStats = async () => {
     const res = await API.get("/logs");
@@ -227,6 +238,33 @@ const allowedFields = [
       <div className="flex flex-wrap items-center gap-3 mb-4">
         <label className="font-semibold">Language:</label>
 
+{/* ADD */}
+<motion.div className="bg-white p-4 rounded-xl shadow mb-6">
+  <h2 className="font-bold mb-3">Add Medication</h2>
+
+  <div className="grid md:grid-cols-2 gap-3">
+    {/* ✅ ADD THE 'form &&' GUARD HERE */}
+    {form && Object.keys(form).map((field) => (
+      <input
+        key={field}
+        placeholder={field}
+        /* ✅ ADD '|| ""' HERE TO ENSURE VALUE IS NEVER NULL */
+        value={form[field] || ""} 
+        onChange={(e) =>
+          setForm({ ...form, [field]: e.target.value })
+        }
+        className="p-2 border rounded"
+      />
+    ))}
+  </div>
+
+  <button
+    onClick={handleAdd}
+    className="mt-3 bg-blue-600 text-white px-4 py-2 rounded"
+  >
+    Add Medication
+  </button>
+</motion.div>
         <select
           className="p-2 border rounded"
           value={language}
