@@ -1,21 +1,20 @@
-import axios from 'axios';
+import API from "./api";
 
+/**
+ * Uploads a prescription image to the backend.
+ * The interceptor in api.js handles the Auth token automatically.
+ */
 export const uploadPrescription = async (selectedFile) => {
-  const token = localStorage.getItem("token"); // 
-  
   const formData = new FormData();
-  // IMPORTANT: The key "image" must match upload.single("image") in the backend
+  
+  // This "image" key MUST match upload.single("image") in your backend controller
   formData.append("image", selectedFile); 
 
-  const response = await axios.post(
-    `${import.meta.env.VITE_API_URL}/api/prescriptions/upload`,
-    formData,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`, // 
-        "Content-Type": "multipart/form-data",
-      },
-    }
-  );
+  const response = await API.post("/prescriptions/upload", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+
   return response.data;
 };
