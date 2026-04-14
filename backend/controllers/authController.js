@@ -1,7 +1,6 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-
 // Generate Token
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -77,3 +76,4 @@ module.exports = (req, res, next) => {
     res.status(401).json({ message: "Invalid token" });
   }
 };
+module.exports = { registerUser, loginUser };
