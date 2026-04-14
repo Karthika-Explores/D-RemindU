@@ -39,11 +39,11 @@ function Dashboard() {
   const stored = localStorage.getItem("extractedMeds");
   if (stored) {
     const data = JSON.parse(stored);
-    if (data.length > 0) {
-      setQueue(data);
-      // ✅ This line ensures the first extracted medicine fills the form
-      setForm(prev => ({ ...prev, ...data[0] })); 
-    }
+   if (data && data.length > 0) {
+  setQueue(data);
+  // ✅ Force the form to update with the new extracted medicine
+  setForm({ ...form, ...data[0] }); 
+}
   }
   fetchMeds();
   fetchStats();
@@ -185,10 +185,10 @@ function Dashboard() {
   clearTimeout(repeatTimer);
   setActiveReminder(null);
 
-  // Use the pre-set dose from your database, default to 1 if missing
+  // ✅ IMPROVEMENT: Use the pre-set dose instead of a prompt
   const doseAmount = med.tabletsPerDose || 1; 
 
-  // Calculate new count and ensure it doesn't go below zero
+  // Calculate new count
   const updatedCount = Math.max(0, med.totalTablets - Number(doseAmount));
 
   try {
@@ -203,7 +203,7 @@ function Dashboard() {
       medicationId: med._id
     });
 
-    // 3. Refresh the UI stats and list
+    // 3. Refresh the UI
     fetchMeds();
     fetchStats();
   } catch (error) {
