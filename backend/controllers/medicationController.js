@@ -1,22 +1,42 @@
 const Medication = require("../models/Medication");
 
 // Add this to controllers/medicationController.js
+const Medication = require("../models/Medication");
+
 exports.addMedication = async (req, res) => {
   try {
-    const { name, dosage, frequency, timings } = req.body;
+    // ✅ Updated to match the fields sent by your Dashboard/OCR
+    const { 
+      medicineName, 
+      dosage, 
+      instructions, 
+      reminderTime, 
+      totalTablets, 
+      tabletsPerDose, 
+      dosesPerDay, 
+      lowStockThreshold 
+    } = req.body;
+
     const newMed = new Medication({
-      userId: req.user.id || req.user._id,
-      name,
+      userId: req.user.id || req.user._id || req.user,
+      medicineName,
       dosage,
-      frequency,
-      timings
+      instructions,
+      reminderTime,
+      totalTablets: Number(totalTablets),
+      tabletsPerDose: Number(tabletsPerDose),
+      dosesPerDay: Number(dosesPerDay),
+      lowStockThreshold: Number(lowStockThreshold)
     });
+
     const savedMed = await newMed.save();
     res.status(201).json(savedMed);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
+// Keep the rest of your controller (getMedications, update, delete) as is.
 // ✅ Get All Medications
 exports.getMedications = async (req, res) => {
   try {

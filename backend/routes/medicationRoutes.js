@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const protect = require("../middleware/authMiddleware");
+const {protect} = require("../middleware/authMiddleware");
 
 const {
   addMedication,
@@ -11,7 +11,7 @@ const {
 
 console.log("Protect Middleware:", protect);
 console.log("AddMedication Controller:", addMedication);
-router.post("/add", protect, addMedication);
+router.post("/", protect, addMedication);
 router.get("/", protect, getMedications);
 router.put("/:id", protect, updateMedication);
 router.delete("/:id", protect, deleteMedication);
