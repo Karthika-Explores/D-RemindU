@@ -43,17 +43,25 @@ function Dashboard() {
         if (data && data.length > 0) {
           setQueue(data);
           // ✅ Merges extracted data into the form correctly
-          setForm(prevForm => ({
-            ...prevForm,
-            ...data[0] 
-          }));
+          setForm({
+          medicineName: data[0].medicineName || "",
+          dosage: data[0].dosage || "",
+          instructions: data[0].instructions || "",
+          reminderTime: data[0].reminderTime || "",
+          totalTablets: data[0].totalTablets || "",
+          tabletsPerDose: data[0].tabletsPerDose || "",
+          dosesPerDay: data[0].dosesPerDay || "",
+          lowStockThreshold: data[0].lowStockThreshold || ""
+        });
         }
       } catch (e) {
         console.error("Error parsing extracted meds", e);
       }
     }
+   if (localStorage.getItem("token")) {
     fetchMeds();
     fetchStats();
+  }
   }, []);
 
   // ✅ REMINDER SYSTEM
