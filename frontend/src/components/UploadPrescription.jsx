@@ -1,8 +1,7 @@
 import { useState } from "react";
-// Import the service function specifically
 import { uploadPrescription } from "../services/prescriptionapi"; 
 
-// 🔍 Helper: Extract lines containing specific keywords
+// Helper: Extract lines with keywords
 const extractMedicines = (text) => {
   if (!text) return [];
   const lines = text.split("\n");
@@ -11,10 +10,11 @@ const extractMedicines = (text) => {
   );
 };
 
-// 🧠 Helper: Convert a single text line into an object
+// Helper: Convert text line to object with CORRECT KEYS
 const parseMedicine = (line) => {
   const parts = line.split(" ");
   return {
+    // 🚨 KEY NAMES MUST MATCH Dashboard.jsx form state exactly
     medicineName: parts[0] || "Unknown Medicine",
     dosage: parts.find(p => p.toLowerCase().includes("mg")) || "500mg",
     instructions: "After food",
@@ -36,26 +36,23 @@ function UploadPrescription() {
 
     setLoading(true);
     try {
-      // ✅ Call the service function (cleaner than manual API.post)
       const data = await uploadPrescription(file);
-
-      const extractedText = data.extractedText;
+      const extractedText = data.extractedText || "";
       setText(extractedText);
 
-      // Extract and Parse
       const meds = extractMedicines(extractedText);
       const parsedMeds = meds.map(med => parseMedicine(med));
 
-      // Store in localStorage for the Dashboard to pick up
+      // ✅ Store with specific keys
       localStorage.setItem("extractedMeds", JSON.stringify(parsedMeds));
 
       alert("Medicines extracted! Please review and add.");
       
-      // Navigate to dashboard
+      // ✅ Redirect to Dashboard where useEffect will catch it
       window.location.href = "/dashboard";
 
     } catch (error) {
-      console.error("Upload failed details:", error.response?.data || error.message);
+      console.error("Upload failed:", error.response?.data || error.message);
       alert(error.response?.data?.message || "Upload failed");
     } finally {
       setLoading(false);
@@ -63,24 +60,25 @@ function UploadPrescription() {
   };
 
   return (
-    <div style={{ border: "1px solid #ccc", padding: "20px", borderRadius: "8px" }}>
-      <h3>Upload Prescription</h3>
-
+    <div className="p-6 max-w-lg mx-auto bg-white rounded-xl shadow-md space-y-4">
+      <h3 className="text-xl font-bold">Upload Prescription</h3>
       <input 
         type="file" 
         accept="image/*" 
         onChange={(e) => setFile(e.target.files[0])} 
+        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
       />
-      <br /><br />
-
-      <button onClick={handleUpload} disabled={loading}>
+      <button 
+        onClick={handleUpload} 
+        disabled={loading}
+        className="w-full bg-blue-600 text-white py-2 rounded-lg font-bold disabled:bg-gray-400"
+      >
         {loading ? "Processing..." : "Upload & Extract"}
       </button>
-
       {text && (
-        <div style={{ marginTop: "20px" }}>
-          <h4>Extracted Text (Debug):</h4>
-          <textarea value={text} readOnly rows={6} cols={40} style={{ width: "100%" }} />
+        <div className="mt-4">
+          <h4 className="font-semibold">Extracted Text:</h4>
+          <textarea value={text} readOnly className="w-full h-32 p-2 border rounded bg-gray-50" />
         </div>
       )}
     </div>
