@@ -42,7 +42,7 @@ function Dashboard() {
         const data = JSON.parse(stored);
         if (data && data.length > 0) {
           setQueue(data);
-          // ✅ Merges extracted data into the form correctly
+          const firstMed = data[0];// ✅ Merges extracted data into the form correctly
           setForm({
           medicineName: data[0].medicineName || "",
           dosage: data[0].dosage || "",
@@ -58,10 +58,8 @@ function Dashboard() {
         console.error("Error parsing extracted meds", e);
       }
     }
-   if (localStorage.getItem("token")) {
     fetchMeds();
     fetchStats();
-  }
   }, []);
 
   // ✅ REMINDER SYSTEM
