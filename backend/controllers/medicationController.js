@@ -26,8 +26,8 @@ exports.addMedication = async (req, res) => {
       lowStockThreshold: Number(lowStockThreshold)
     });
 
-    const savedMed = await newMed.save();
-    res.status(201).json(savedMed);
+    await newMed.save();
+    res.status(201).json(newMed);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

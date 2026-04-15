@@ -12,16 +12,15 @@ const extractMedicines = (text) => {
 
 // Helper: Convert text line to object with CORRECT KEYS
 const parseMedicine = (line) => {
-  const parts = line.split(" ");
   return {
-    // 🚨 KEY NAMES MUST MATCH Dashboard.jsx form state exactly
-    medicineName: parts[0] || "Unknown Medicine",
-    dosage: parts.find(p => p.toLowerCase().includes("mg")) || "500mg",
+    // Ensure this matches your Dashboard state exactly
+    medicineName: line.split(" ")[0] || "New Med", 
+    dosage: "500mg",
     instructions: "After food",
-    reminderTime: "10:00",
+    reminderTime: "08:00",
     totalTablets: 10,
     tabletsPerDose: 1,
-    dosesPerDay: 2,
+    dosesPerDay: 1,
     lowStockThreshold: 2
   };
 };
