@@ -53,6 +53,8 @@ function Dashboard() {
           dosesPerDay: data[0].dosesPerDay || "",
           lowStockThreshold: data[0].lowStockThreshold || ""
         });
+        localStorage.removeItem("extractedMeds");
+      }
         }
       } catch (e) {
         console.error("Error parsing extracted meds", e);
@@ -121,20 +123,18 @@ function Dashboard() {
   };
 
   const fetchMeds = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) return; 
-    
-    try {
-        const res = await API.get("/logs");
-        setMedications(Array.isArray(res.data) ? res.data : []);
-    } catch (err) {
-        console.error("Fetch Error:", err);
-    }
-  };
+  try {
+    const res = await API.get("/medications");
+    setMedications(Array.isArray(res.data) ? res.data : []);
+  } catch (err) {
+    console.error("Fetch Error:", err.response?.data || err.message);
+  }
+};
 
   const fetchStats = async () => {
+  try {
     const res = await API.get("/logs");
-    const logs = res.data;
+    const logs = res.data || [];
 
     const taken = logs.filter(l => l.status === "Taken").length;
     const missed = logs.filter(l => l.status === "Missed").length;
@@ -145,7 +145,10 @@ function Dashboard() {
         : Math.round((taken / (taken + missed)) * 100);
 
     setStats({ taken, missed, adherence });
-  };
+  } catch (err) {
+    console.error("Stats error:", err.response?.data || err.message);
+  }
+};
 
   const handleAdd = async () => {
     await API.post("/medications", {

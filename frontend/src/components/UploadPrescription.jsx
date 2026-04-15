@@ -1,6 +1,14 @@
 import { useState } from "react";
 import { uploadPrescription } from "../services/prescriptionapi"; 
+import { useNavigate } from "react-router-dom";
 
+const navigate = useNavigate();
+
+// replace:
+window.location.href = "/dashboard";
+
+// with:
+navigate("/dashboard");
 // Helper: Extract lines with keywords
 const extractMedicines = (text) => {
   if (!text) return [];
