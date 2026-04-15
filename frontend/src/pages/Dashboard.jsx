@@ -70,10 +70,18 @@ function Dashboard() {
           triggerReminder(med, "time");
         }
 
-        if (Number(med.totalTablets) <= Number(med.lowStockThreshold) && !triggeredStock[med._id]) {
-          setTriggeredStock(prev => ({ ...prev, [med._id]: true }));
-          triggerReminder(med, "stock");
-        }
+        // Inside the medications.forEach loop in Dashboard.jsx
+if (
+  Number(med.totalTablets) <= Number(med.lowStockThreshold) && 
+  !triggeredStock[med._id]
+) {
+  setTriggeredStock(prev => ({
+    ...prev,
+    [med._id]: true
+  }));
+
+  triggerReminder(med, "stock");
+}
       });
     }, 10000);
 
@@ -122,13 +130,20 @@ function Dashboard() {
   };
 
   const handleAdd = async () => {
-    await API.post("/medications", {
-      ...form,
-      totalTablets: Number(form.totalTablets),
-      tabletsPerDose: Number(form.tabletsPerDose),
-      dosesPerDay: Number(form.dosesPerDay),
-      lowStockThreshold: Number(form.lowStockThreshold)
-    });
+  await API.post("/medications", {
+    ...form,
+    totalTablets: Number(form.totalTablets),
+    tabletsPerDose: Number(form.tabletsPerDose),
+    dosesPerDay: Number(form.dosesPerDay),
+    lowStockThreshold: Number(form.lowStockThreshold)
+  });
+
+  // ✅ Force a reset of the triggeredStock for this specific medicine
+  setTriggeredStock(prev => {
+    const newState = { ...prev };
+    delete newState[form.medicineName]; // Reset by name or ID if known
+    return newState;
+  });
 
     fetchMeds();
     const updated = queue.slice(1);
@@ -147,22 +162,48 @@ function Dashboard() {
   };
 
   const markTaken = async (med) => {
-    clearTimeout(repeatTimer);
-    setActiveReminder(null);
+  clearTimeout(repeatTimer);
+  setActiveReminder(null);
 
-    // ✅ Logic to handle stock alert quantity or normal dose
-    const doseAmount = med.type === "stock" ? Number(takenQty) : (med.tabletsPerDose || 1);
-    const updatedCount = Math.max(0, Number(med.totalTablets) - Number(doseAmount));
+  try {
+    // ✅ check if this is low stock reminder
+    const isLowStock =
+      activeReminder &&
+      activeReminder._id === med._id &&
+      activeReminder.type === "stock";
 
-    try {
-      await API.put(`/medications/${med._id}`, { ...med, totalTablets: updatedCount });
-      await API.post("/logs/taken", { medicationId: med._id });
-      fetchMeds();
-      fetchStats();
-    } catch (error) {
-      console.error("Failed to mark as taken:", error);
-    }
-  };
+    // ✅ use correct amount
+    const amount = isLowStock
+      ? Number(takenQty)
+      : Number(med.tabletsPerDose || 1);
+
+    const updatedCount = Math.max(
+      0,
+      Number(med.totalTablets) - amount
+    );
+
+    // ✅ UPDATE BACKEND
+    await API.put(`/medications/${med._id}`, {
+      ...med,
+      totalTablets: updatedCount
+    });
+
+    // ✅ LOG ENTRY
+    await API.post("/logs/taken", {
+      medicationId: med._id
+    });
+
+    // ✅ RESET INPUT (important)
+    setTakenQty(1);
+
+    // ✅ REFRESH UI
+    await fetchMeds();
+    await fetchStats();
+
+  } catch (error) {
+    console.error("Mark taken failed:", error);
+  }
+};
 
   const markMissed = async (id) => {
     clearTimeout(repeatTimer);
@@ -177,6 +218,27 @@ function Dashboard() {
     "medicineName", "dosage", "instructions", "reminderTime", 
     "totalTablets", "tabletsPerDose", "dosesPerDay", "lowStockThreshold"
   ];
+
+  const startEdit = (med) => {
+  setEditingId(med._id);
+  setEditForm(med); // Pre-fills the edit form with current data
+};
+
+const handleUpdate = async () => {
+  try {
+    await API.put(`/medications/${editingId}`, {
+      ...editForm,
+      totalTablets: Number(editForm.totalTablets),
+      tabletsPerDose: Number(editForm.tabletsPerDose),
+      dosesPerDay: Number(editForm.dosesPerDay),
+      lowStockThreshold: Number(editForm.lowStockThreshold)
+    });
+    setEditingId(null); // Exit edit mode
+    fetchMeds(); // Refresh the list
+  } catch (error) {
+    console.error("Update failed:", error);
+  }
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-100 to-blue-100 p-6">
@@ -229,18 +291,41 @@ function Dashboard() {
       </div>
 
       {/* 💊 MEDICATION LIST */}
-      <div className="grid md:grid-cols-3 gap-4">
-        {medications.map((med) => (
-          <div key={med._id} className="bg-white p-4 rounded-xl shadow border-t-4 border-blue-500">
-            <h3 className="font-bold text-lg text-gray-800">{med.medicineName}</h3>
-            <p className="text-sm">Stock: {med.totalTablets} left</p>
-            <div className="flex gap-2 mt-4">
-              <button onClick={() => markTaken(med)} className="bg-green-500 text-white px-3 py-1 rounded">Taken</button>
-              <button onClick={() => markMissed(med._id)} className="bg-red-500 text-white px-3 py-1 rounded">Missed</button>
-            </div>
+<div className="grid md:grid-cols-3 gap-4">
+  {medications.map((med) => (
+    <div key={med._id} className="bg-white p-4 rounded-xl shadow border-t-4 border-blue-500">
+      {editingId === med._id ? (
+        <>
+          {/* Edit Mode Inputs */}
+          {allowedFields.map((field) => (
+            <input
+              key={field}
+              value={editForm[field] || ""}
+              onChange={(e) => setEditForm({ ...editForm, [field]: e.target.value })}
+              className="p-2 border rounded mb-2 w-full text-sm"
+            />
+          ))}
+          <div className="flex gap-2 mt-2">
+            <button onClick={handleUpdate} className="bg-green-500 text-white px-3 py-1 rounded flex-1">Save</button>
+            <button onClick={() => setEditingId(null)} className="bg-gray-400 text-white px-3 py-1 rounded flex-1">Cancel</button>
           </div>
-        ))}
-      </div>
+        </>
+      ) : (
+        <>
+          {/* View Mode */}
+          <h3 className="font-bold text-lg text-gray-800">{med.medicineName}</h3>
+          <p className="text-sm">Stock: {med.totalTablets} left</p>
+          <div className="flex gap-2 mt-4">
+            <button onClick={() => markTaken(med)} className="bg-green-500 text-white px-3 py-1 rounded flex-1">Taken</button>
+            <button onClick={() => markMissed(med._id)} className="bg-red-500 text-white px-3 py-1 rounded flex-1">Missed</button>
+            {/* ✅ THE MISSING BUTTON */}
+            <button onClick={() => startEdit(med)} className="bg-yellow-400 hover:bg-yellow-500 px-3 py-1 rounded">Edit</button>
+          </div>
+        </>
+      )}
+    </div>
+  ))}
+</div>
 
       {/* 🚨 REMINDER MODAL */}
       {activeReminder && (
@@ -257,12 +342,13 @@ function Dashboard() {
             
             {activeReminder.type === "stock" && (
               <input
-                type="number"
-                value={takenQty}
-                min="1"
-                onChange={(e) => setTakenQty(e.target.value)}
-                className="border p-2 rounded w-full mb-4"
-              />
+  type="number"
+  value={takenQty}
+  min="1"
+  max={activeReminder?.totalTablets || 1}
+  onChange={(e) => setTakenQty(Number(e.target.value))}
+  className="border p-2 rounded w-full mb-4"
+/>
             )}
 
             <div className="flex justify-center gap-4">
