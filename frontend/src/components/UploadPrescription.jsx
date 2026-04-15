@@ -2,13 +2,6 @@ import { useState } from "react";
 import { uploadPrescription } from "../services/prescriptionapi"; 
 import { useNavigate } from "react-router-dom";
 
-const navigate = useNavigate();
-
-// replace:
-window.location.href = "/dashboard";
-
-// with:
-navigate("/dashboard");
 // Helper: Extract lines with keywords
 const extractMedicines = (text) => {
   if (!text) return [];
@@ -37,6 +30,10 @@ function UploadPrescription() {
   const [file, setFile] = useState(null);
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+navigate("/upload");
+navigate("/dashboard");
 
   const handleUpload = async () => {
     if (!file) return alert("Please select a file first!");
