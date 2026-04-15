@@ -1,8 +1,5 @@
 const Medication = require("../models/Medication");
 
-// Add this to controllers/medicationController.js
-const Medication = require("../models/Medication");
-
 exports.addMedication = async (req, res) => {
   try {
     // ✅ Updated to match the fields sent by your Dashboard/OCR

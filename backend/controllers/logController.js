@@ -12,7 +12,7 @@ exports.markTaken = async (req, res) => {
       return res.status(404).json({ message: "Medication not found" });
     }
 
-    if (medication.userId.toString() !== req.user) {
+    if (medication.userId.toString() !== req.user.toString()) {
       return res.status(401).json({ message: "Not authorized" });
     }
 
@@ -54,7 +54,7 @@ exports.markMissed = async (req, res) => {
       return res.status(404).json({ message: "Medication not found" });
     }
 
-    if (medication.userId.toString() !== req.user) {
+    if (medication.userId.toString() !== req.user.toString()) {
       return res.status(401).json({ message: "Not authorized" });
     }
 
@@ -76,7 +76,7 @@ exports.markMissed = async (req, res) => {
 exports.getLogs = async (req, res) => {
   try {
     // 🚨 Ensure we are using req.user, which comes from the 'protect' middleware
-    const logs = await Log.find({ userId: req.user._id || req.user.id || req.user
+    const logs = await Log.find({ userId: req.user
  })
       .sort({ createdAt: -1 });
 

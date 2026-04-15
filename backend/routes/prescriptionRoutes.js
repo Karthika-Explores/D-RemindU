@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 // Import the middleware
-const protect = require("../middleware/authMiddleware");
+const {protect} = require("../middleware/authMiddleware");
 const upload = require("../middleware/uploadMiddleware");
 
 // Import the controller logic

@@ -125,7 +125,7 @@ function Dashboard() {
     if (!token) return; 
     
     try {
-        const res = await API.get("/medications");
+        const res = await API.get("/logs");
         setMedications(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
         console.error("Fetch Error:", err);
