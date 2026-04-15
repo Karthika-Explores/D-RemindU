@@ -76,13 +76,12 @@ exports.markMissed = async (req, res) => {
 exports.getLogs = async (req, res) => {
   try {
     // req.user comes from your 'protect' middleware
-    const logs = await Log.find({ userId: req.user._id || req.user })
+    const logs = await Log.find({ userId: req.user })
       .populate("medicationId", "medicineName") // This links the log to the medication name
       .sort({ createdAt: -1 }); // Show newest first
 
-   res.status(200).json(logs || []); 
+    res.json(logs);
   } catch (error) {
-    console.error("Log Fetch Error:", error);
-    res.status(500).json({ message: "Server error fetching logs" });
+    res.status(500).json({ message: error.message });
   }
 };
