@@ -32,9 +32,6 @@ function UploadPrescription() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-navigate("/upload");
-navigate("/dashboard");
-
   const handleUpload = async () => {
     if (!file) return alert("Please select a file first!");
 
@@ -53,7 +50,7 @@ navigate("/dashboard");
       alert("Medicines extracted! Please review and add.");
       
       // ✅ Redirect to Dashboard where useEffect will catch it
-      window.location.href = "/dashboard";
+      navigate("/dashboard");
 
     } catch (error) {
       console.error("Upload failed:", error.response?.data || error.message);
