@@ -55,7 +55,6 @@ function Dashboard() {
         });
         localStorage.removeItem("extractedMeds");
       }
-        }
       } catch (e) {
         console.error("Error parsing extracted meds", e);
       }
