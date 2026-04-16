@@ -14,7 +14,7 @@ const logSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["Taken", "Missed"],
+      enum: ["taken", "missed"],
       required: true
     },
     date: {

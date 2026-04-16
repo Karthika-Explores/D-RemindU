@@ -2,55 +2,91 @@ import { useEffect, useState } from "react";
 import API from "../services/api";
 import { speakReminder } from "../utils/voice";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import Navbar from "../components/Navbar";
+import UsageChart from "./UsageChart";
 
 let lastTriggered = "";
 
 function Dashboard() {
   const [form, setForm] = useState({
-    medicineName: "",
-    dosage: "",
-    instructions: "",
-    reminderTime: "",
-    totalTablets: "",
-    tabletsPerDose: "",
-    dosesPerDay: "",
-    lowStockThreshold: ""
-  });
+  medicineName: "",
+  dosage: "",
+  instructions: "",
+  reminderTime: "",
+  totalTablets: "",
+  tabletsPerDose: "",
+  dosesPerDay: "",
+  lowStockThreshold: "",
+  injectionSite: "", // ✅ NEW
+  mealTiming: "" // NEW
+});
 
   const [queue, setQueue] = useState([]);
   const [medications, setMedications] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({});
   const [language, setLanguage] = useState(localStorage.getItem("language") || "en-US");
-
+  const [queueIndex, setQueueIndex] = useState(0);
   const [activeReminder, setActiveReminder] = useState(null);
   const [repeatTimer, setRepeatTimer] = useState(null);
   const [triggeredStock, setTriggeredStock] = useState({});
-
+  const sites = ["Left Abdomen", "Right Abdomen", "Left Thigh", "Right Thigh"];
+  const [showEmergency, setShowEmergency] = useState(false);
   // 🚨 ADDED MISSING STATES
   const [takenQty, setTakenQty] = useState(1);
   const [showDialog, setShowDialog] = useState(false);
   const [selectedMed, setSelectedMed] = useState(null);
-
+  const [extractedQueue, setExtractedQueue] = useState([]);
   const [stats, setStats] = useState({ taken: 0, missed: 0, adherence: 0 });
+  const navigate = useNavigate();
 
   useEffect(() => {
     const stored = localStorage.getItem("extractedMeds");
     if (stored) {
-      try {
-        const data = JSON.parse(stored);
-        if (data && data.length > 0) {
-          setQueue(data);
-          // ✅ Safe update to auto-fill
-          setForm(prev => ({ ...prev, ...data[0] }));
-        }
-      } catch (e) {
-        console.error("Error parsing extracted meds", e);
-      }
-    }
+  try {
+    const data = JSON.parse(stored);
+
+    if (data && data.length > 0) {
+  setExtractedQueue(data);
+  setQueueIndex(0);
+  setForm(data[0]); // first item
+}
+  } catch (e) {
+    console.error("Queue parse error:", e);
+  }
+}
     fetchMeds();
     fetchStats();
   }, []);
+
+  const handleNextInQueue = () => {
+  const nextIndex = queueIndex + 1;
+
+  if (nextIndex >= extractedQueue.length) {
+    // ✅ Finished
+    setExtractedQueue([]);
+    setQueueIndex(0);
+    localStorage.removeItem("extractedMeds");
+
+    setForm({
+      medicineName: "",
+      dosage: "",
+      instructions: "",
+      reminderTime: "",
+      totalTablets: "",
+      tabletsPerDose: "",
+      dosesPerDay: "",
+      lowStockThreshold: ""
+    });
+
+    return;
+  }
+
+  // ✅ Move to next
+  setQueueIndex(nextIndex);
+  setForm(extractedQueue[nextIndex]);
+};;
 
   // ✅ REMINDER SYSTEM
   useEffect(() => {
@@ -128,38 +164,32 @@ if (
       console.error("Stats error:", err);
     }
   };
-
+  const nextSite = (current) => {
+  const index = sites.indexOf(current);
+  return sites[(index + 1) % sites.length];
+};
   const handleAdd = async () => {
-  await API.post("/medications", {
-    ...form,
-    totalTablets: Number(form.totalTablets),
-    tabletsPerDose: Number(form.tabletsPerDose),
-    dosesPerDay: Number(form.dosesPerDay),
-    lowStockThreshold: Number(form.lowStockThreshold)
-  });
-
-  // ✅ Force a reset of the triggeredStock for this specific medicine
-  setTriggeredStock(prev => {
-    const newState = { ...prev };
-    delete newState[form.medicineName]; // Reset by name or ID if known
-    return newState;
-  });
+  try {
+    await API.post("/medications", {
+      ...form,
+      injectionSite: (form.injectionSite),
+      totalTablets: Number(form.totalTablets),
+      tabletsPerDose: Number(form.tabletsPerDose),
+      dosesPerDay: Number(form.dosesPerDay),
+      lowStockThreshold: Number(form.lowStockThreshold)
+    });
 
     fetchMeds();
-    const updated = queue.slice(1);
-    setQueue(updated);
 
-    if (updated.length > 0) {
-      setForm(prev => ({ ...prev, ...updated[0] }));
-    } else {
-      localStorage.removeItem("extractedMeds");
-      setForm({
-        medicineName: "", dosage: "", instructions: "", reminderTime: "",
-        totalTablets: "", tabletsPerDose: "", dosesPerDay: "", lowStockThreshold: ""
-      });
-    }
-    alert("Medication added");
-  };
+    // ✅ move to next after user edit
+    handleNextInQueue();
+
+    alert("Medicine saved");
+
+  } catch (error) {
+    console.error(error);
+  }
+};
 
   const markTaken = async (med) => {
   clearTimeout(repeatTimer);
@@ -205,6 +235,58 @@ if (
   }
 };
 
+  const handleStockUpdate = async (med) => {
+  try {
+    const quantity = Number(takenQty);
+
+    if (!quantity || quantity <= 0) return;
+
+    // ✅ Calculate updated values
+    const updatedStock = Math.max(
+      0,
+      Number(med.totalTablets) - quantity
+    );
+
+    const updatedDosesTaken =
+      Number(med.dosesTaken || 0) + quantity;
+
+    // ✅ 1. UPDATE UI IMMEDIATELY (optimistic update)
+    setMedications((prev) =>
+      prev.map((m) =>
+        m._id === med._id
+          ? {
+              ...m,
+              totalTablets: updatedStock,
+              dosesTaken: updatedDosesTaken
+            }
+          : m
+      )
+    );
+
+    // ✅ 2. SEND UPDATE TO BACKEND
+    await API.put(`/medications/${med._id}`, {
+      ...med,
+      totalTablets: updatedStock,
+      dosesTaken: updatedDosesTaken
+    });
+
+    // ✅ 3. LOG ENTRY (optional but recommended)
+    await API.post("/logs/taken", {
+      medicationId: med._id
+    });
+
+    // ✅ 4. RESET UI STATE
+    setTakenQty(1);
+    setActiveReminder(null);
+
+  } catch (error) {
+    console.error("Stock update failed:", error);
+
+    // ❗ OPTIONAL: rollback UI if API fails
+    fetchMeds();
+  }
+};
+
   const markMissed = async (id) => {
     clearTimeout(repeatTimer);
     setActiveReminder(null);
@@ -216,7 +298,7 @@ if (
 
   const allowedFields = [
     "medicineName", "dosage", "instructions", "reminderTime", 
-    "totalTablets", "tabletsPerDose", "dosesPerDay", "lowStockThreshold"
+    "totalTablets", "tabletsPerDose", "dosesPerDay", "lowStockThreshold","injectionSite"
   ];
 
   const startEdit = (med) => {
@@ -239,9 +321,60 @@ const handleUpdate = async () => {
     console.error("Update failed:", error);
   }
 };
+    {showEmergency && (
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div className="bg-white p-6 rounded-xl w-96 text-center">
+
+      <h2 className="text-xl font-bold text-red-600 mb-4">
+        ⚠ Hypoglycemia Alert
+      </h2>
+
+      <p className="text-sm mb-3">
+        Follow the <b>15-15 Rule</b>:
+      </p>
+
+      <ul className="text-left text-sm mb-4">
+        <li>• Take 15g fast sugar (glucose tablets, juice)</li>
+        <li>• Wait 15 minutes</li>
+        <li>• Recheck blood sugar</li>
+        <li>• Repeat if still low</li>
+      </ul>
+
+      <button
+        onClick={() => {
+          <a href="tel:1234567890">
+  <button className="bg-red-500 text-white px-4 py-2 rounded w-full mb-2">
+    📞 Call Emergency Contact
+  </button>
+</a> // replace later
+        }}
+        className="bg-red-500 text-white px-4 py-2 rounded w-full mb-2"
+      >
+        📞 Call Emergency Contact
+      </button>
+
+      <button
+        onClick={() => setShowEmergency(false)}
+        className="bg-gray-400 text-white px-4 py-2 rounded w-full"
+      >
+        Close
+      </button>
+
+    </div>
+  </div>
+)}
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-100 to-blue-100 p-6">
+    <Navbar />
+    <div className="flex justify-end mb-4">
+  <button
+    onClick={() => navigate("/profile")}
+    className="bg-gray-200 px-3 py-1 rounded"
+  >
+    👤 Profile
+  </button>
+</div>
       <h1 className="text-3xl font-bold mb-4 text-blue-700">Dashboard</h1>
 
       {/* SETTINGS BAR */}
@@ -264,6 +397,21 @@ const handleUpdate = async () => {
           Upload Prescription
         </button>
       </div>
+          <select
+  value={form.injectionSite}
+  onChange={(e) =>
+    setForm({ ...form, injectionSite: e.target.value })
+  }
+  className="border p-2 rounded w-full"
+>
+  <option value="">Select Injection Site</option>
+  <option>Left Abdomen</option>
+  <option>Right Abdomen</option>
+  <option>Left Thigh</option>
+  <option>Right Thigh</option>
+  <option>Left Arm</option>
+  <option>Right Arm</option>
+</select>
 
       {/* ADD MEDICATION SECTION */}
       <div className="bg-white p-4 rounded-xl shadow mb-6">
@@ -273,8 +421,8 @@ const handleUpdate = async () => {
             <input
               key={field}
               placeholder={field}
-              value={form[field] || ""} 
-              onChange={(e) => setForm({ ...form, [field]: e.target.value })}
+              value={form.medicineName}
+onChange={(e) => setForm({ ...form, medicineName: e.target.value })}
               className="p-2 border rounded focus:ring-2 focus:ring-blue-400 outline-none"
             />
           ))}
@@ -283,7 +431,30 @@ const handleUpdate = async () => {
           Add Medication
         </button>
       </div>
-
+      <button
+        type="button"
+        onClick={handleNextInQueue}
+        className="bg-gray-400 text-white px-4 py-2 rounded"
+      >
+        Skip
+      </button>
+        {extractedQueue.length > 0 && (
+  <p className="text-blue-500 text-sm">
+    Reviewing {queueIndex + 1} of {extractedQueue.length}
+  </p>
+)}
+      <select
+  value={form.mealTiming}
+  onChange={(e) =>
+    setForm({ ...form, mealTiming: e.target.value })
+  }
+  className="border p-2 rounded w-full"
+>
+  <option value="">Meal Timing</option>
+  <option>Before Food</option>
+  <option>After Food</option>
+  <option>With Food</option>
+</select>
       {/* ANALYTICS & LIST (Omitted for brevity, keep your existing UI) */}
       <div className="bg-white p-4 rounded-xl shadow mb-6">
         <h2 className="font-bold mb-3">Weekly Report</h2>
@@ -300,8 +471,8 @@ const handleUpdate = async () => {
           {allowedFields.map((field) => (
             <input
               key={field}
-              value={editForm[field] || ""}
-              onChange={(e) => setEditForm({ ...editForm, [field]: e.target.value })}
+              value={form.medicineName}
+              onChange={(e) => setForm({ ...form, medicineName: e.target.value })}
               className="p-2 border rounded mb-2 w-full text-sm"
             />
           ))}
@@ -326,7 +497,12 @@ const handleUpdate = async () => {
     </div>
   ))}
 </div>
-
+      <button
+  onClick={() => setShowEmergency(true)}
+  className="bg-red-600 text-white px-4 py-2 rounded-lg font-bold mb-4"
+>
+  🚨 Low Sugar Emergency
+</button>
       {/* 🚨 REMINDER MODAL */}
       {activeReminder && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
@@ -339,25 +515,40 @@ const handleUpdate = async () => {
                 ? `Please take your ${activeReminder.medicineName}.`
                 : `Enter tablets taken for ${activeReminder.medicineName}`}
             </p>
-            
+            {activeReminder.mealTiming && (
+  <p className="text-sm text-gray-600">
+    👉 Take {activeReminder.mealTiming}
+  </p>
+)}
             {activeReminder.type === "stock" && (
               <input
-  type="number"
-  value={takenQty}
-  min="1"
-  max={activeReminder?.totalTablets || 1}
-  onChange={(e) => setTakenQty(Number(e.target.value))}
-  className="border p-2 rounded w-full mb-4"
+            type="number"
+            value={takenQty}
+            min="1"
+            max={activeReminder?.totalTablets || 1}
+            onChange={(e) => setTakenQty(Number(e.target.value))}
+            className="border p-2 rounded w-full mb-4"
 />
             )}
 
             <div className="flex justify-center gap-4">
-              <button onClick={() => markTaken(activeReminder)} className="bg-green-500 text-white px-6 py-2 rounded-xl font-bold">Taken</button>
+              <button
+              onClick={() => {
+               if (activeReminder.type === "stock") {
+                 handleStockUpdate(activeReminder);
+              } else {
+                markTaken(activeReminder);
+    }
+  }}
+>
+  Taken
+</button>
               <button onClick={() => setActiveReminder(null)} className="bg-gray-400 text-white px-6 py-2 rounded-xl font-bold">Close</button>
             </div>
           </div>
         </div>
       )}
+      <UsageChart />
     </div>
   );
 }

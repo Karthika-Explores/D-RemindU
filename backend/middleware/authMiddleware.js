@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-
+const User = require("../models/User");
 const protect = async (req, res, next) => {
   // Render can lowercase headers; this check handles both
   const authHeader = req.headers.authorization || req.headers.Authorization;
@@ -13,6 +13,7 @@ const protect = async (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     // 🚨 Attach the ID to req.user so the controllers can use it
+    const user = await User.findById(decoded.id).select("-password");
     req.user = decoded.id; 
     next();
   } catch (err) {

@@ -7,10 +7,12 @@ const medicationSchema = new mongoose.Schema(
     dosage: { type: String, required: true },
     instructions: { type: String, required: true },
     reminderTime: { type: String, required: true }, // HH:MM
+    injectionSite: { type: String, required: true },
     totalTablets: { type: Number, required: true, default: 0 },
     tabletsPerDose: { type: Number, required: true, default: 1 },
     dosesPerDay: { type: Number, required: true, default: 1 },
-    lowStockThreshold: { type: Number, required: true, default: 5 }
+    lowStockThreshold: { type: Number, required: true, default: 5 },
+    dosesTaken: { type: Number, default: 0 }
   },
   { timestamps: true }
 );

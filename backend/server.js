@@ -7,6 +7,7 @@ const medicationRoutes = require("./routes/medicationRoutes");
 const logRoutes = require("./routes/logRoutes");
 const reportRoutes = require("./routes/reportRoutes");
 const prescriptionRoutes = require("./routes/prescriptionRoutes");
+const userRoutes = require("./routes/userRoutes");
 
 dotenv.config();
 
@@ -26,7 +27,7 @@ app.use("/api/medications", medicationRoutes);
 app.use("/api/logs", logRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/prescriptions", prescriptionRoutes);
-
+app.use("/api/user", userRoutes);
 // Test route
 app.get("/", (req, res) => {
   res.send("D RemindU API is running...");
