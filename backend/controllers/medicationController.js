@@ -11,7 +11,9 @@ exports.addMedication = async (req, res) => {
       totalTablets, 
       tabletsPerDose, 
       dosesPerDay, 
-      lowStockThreshold 
+      lowStockThreshold,
+      injectionSite,
+      mealTiming
     } = req.body;
 
     const newMed = new Medication({
@@ -20,6 +22,8 @@ exports.addMedication = async (req, res) => {
       dosage,
       instructions,
       reminderTime,
+      injectionSite,
+      mealTiming,
       totalTablets: Number(totalTablets),
       tabletsPerDose: Number(tabletsPerDose),
       dosesPerDay: Number(dosesPerDay),

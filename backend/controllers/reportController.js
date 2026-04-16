@@ -4,7 +4,7 @@ const Medication = require("../models/Medication");
 // 📊 Weekly Adherence Report
 exports.getWeeklyReport = async (req, res) => {
   try {
-    const userId = req.user;
+    const userId = req.user._id;
 
     // Last 7 days
     const lastWeek = new Date();
@@ -47,7 +47,7 @@ exports.getWeeklyReport = async (req, res) => {
 // ⚠️ Low Stock Alert
 exports.getLowStock = async (req, res) => {
   try {
-    const userId = req.user;
+    const userId = req.user._id;
 
     const medications = await Medication.find({ userId });
 

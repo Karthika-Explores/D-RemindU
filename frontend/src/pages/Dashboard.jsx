@@ -1,26 +1,25 @@
 import { useEffect, useState } from "react";
 import API from "../services/api";
 import { speakReminder } from "../utils/voice";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import Navbar from "../components/Navbar";
-import UsageChart from "./UsageChart";
+import UsageChart from "../components/UsageChart";
 
 let lastTriggered = "";
 
 function Dashboard() {
   const [form, setForm] = useState({
-  medicineName: "",
-  dosage: "",
-  instructions: "",
-  reminderTime: "",
-  totalTablets: "",
-  tabletsPerDose: "",
-  dosesPerDay: "",
-  lowStockThreshold: "",
-  injectionSite: "", // ✅ NEW
-  mealTiming: "" // NEW
-});
+    medicineName: "",
+    dosage: "",
+    instructions: "",
+    reminderTime: "",
+    totalTablets: "",
+    tabletsPerDose: "",
+    dosesPerDay: "",
+    lowStockThreshold: "",
+    injectionSite: "",
+    mealTiming: ""
+  });
 
   const [queue, setQueue] = useState([]);
   const [medications, setMedications] = useState([]);
@@ -31,104 +30,89 @@ function Dashboard() {
   const [activeReminder, setActiveReminder] = useState(null);
   const [repeatTimer, setRepeatTimer] = useState(null);
   const [triggeredStock, setTriggeredStock] = useState({});
-  const sites = ["Left Abdomen", "Right Abdomen", "Left Thigh", "Right Thigh"];
   const [showEmergency, setShowEmergency] = useState(false);
-  // 🚨 ADDED MISSING STATES
   const [takenQty, setTakenQty] = useState(1);
-  const [showDialog, setShowDialog] = useState(false);
-  const [selectedMed, setSelectedMed] = useState(null);
   const [extractedQueue, setExtractedQueue] = useState([]);
   const [stats, setStats] = useState({ taken: 0, missed: 0, adherence: 0 });
+  const [snoozedMeds, setSnoozedMeds] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
     const stored = localStorage.getItem("extractedMeds");
     if (stored) {
-  try {
-    const data = JSON.parse(stored);
-
-    if (data && data.length > 0) {
-  setExtractedQueue(data);
-  setQueueIndex(0);
-  setForm(data[0]); // first item
-}
-  } catch (e) {
-    console.error("Queue parse error:", e);
-  }
-}
+      try {
+        const data = JSON.parse(stored);
+        if (data && data.length > 0) {
+          setExtractedQueue(data);
+          setQueueIndex(0);
+          setForm(data[0]); // first item
+        }
+      } catch (e) {
+        console.error("Queue parse error:", e);
+      }
+    }
     fetchMeds();
     fetchStats();
   }, []);
 
   const handleNextInQueue = () => {
-  const nextIndex = queueIndex + 1;
+    const nextIndex = queueIndex + 1;
+    if (nextIndex >= extractedQueue.length) {
+      setExtractedQueue([]);
+      setQueueIndex(0);
+      localStorage.removeItem("extractedMeds");
+      resetForm();
+      return;
+    }
+    setQueueIndex(nextIndex);
+    setForm(extractedQueue[nextIndex]);
+  };
 
-  if (nextIndex >= extractedQueue.length) {
-    // ✅ Finished
-    setExtractedQueue([]);
-    setQueueIndex(0);
-    localStorage.removeItem("extractedMeds");
-
+  const resetForm = () => {
     setForm({
-      medicineName: "",
-      dosage: "",
-      instructions: "",
-      reminderTime: "",
-      totalTablets: "",
-      tabletsPerDose: "",
-      dosesPerDay: "",
-      lowStockThreshold: ""
+      medicineName: "", dosage: "", instructions: "", reminderTime: "",
+      totalTablets: "", tabletsPerDose: "", dosesPerDay: "", lowStockThreshold: "",
+      injectionSite: "", mealTiming: ""
     });
+  };
 
-    return;
-  }
-
-  // ✅ Move to next
-  setQueueIndex(nextIndex);
-  setForm(extractedQueue[nextIndex]);
-};;
-
-  // ✅ REMINDER SYSTEM
   useEffect(() => {
     if (activeReminder) return;
-
     const interval = setInterval(() => {
       const now = new Date();
       const h = now.getHours();
       const m = now.getMinutes();
 
       medications.forEach((med) => {
-        if (!med.reminderTime) return;
-        const [hh, mm] = med.reminderTime.split(":");
-
-        if (Number(hh) === h && Number(mm) === m && lastTriggered !== med._id + h + m) {
-          lastTriggered = med._id + h + m;
-          triggerReminder(med, "time");
+        if (med.reminderTime) {
+          const [hh, mm] = med.reminderTime.split(":");
+          // Exact time trigger
+          if (Number(hh) === h && Number(mm) === m && lastTriggered !== med._id + h + m) {
+            lastTriggered = med._id + h + m;
+            triggerReminder(med, "time");
+          }
+          // 10-Minute Snooze Trigger
+          if (snoozedMeds[med._id] && now.getTime() >= snoozedMeds[med._id]) {
+             setSnoozedMeds(prev => { const copy = {...prev}; delete copy[med._id]; return copy; });
+             triggerReminder(med, "time");
+          }
         }
-
-        // Inside the medications.forEach loop in Dashboard.jsx
-if (
-  Number(med.totalTablets) <= Number(med.lowStockThreshold) && 
-  !triggeredStock[med._id]
-) {
-  setTriggeredStock(prev => ({
-    ...prev,
-    [med._id]: true
-  }));
-
-  triggerReminder(med, "stock");
-}
+        
+        // 3x Daily Low Stock Reminder (9 AM, 2 PM, 7 PM)
+        if (Number(med.totalTablets) <= Number(med.lowStockThreshold)) {
+          if ((h === 9 || h === 14 || h === 19) && m === 0 && lastTriggered !== med._id + "stock" + h) {
+            lastTriggered = med._id + "stock" + h;
+            triggerReminder(med, "stock");
+          }
+        }
       });
     }, 10000);
-
     return () => clearInterval(interval);
-  }, [medications, activeReminder]);
+  }, [medications, activeReminder, snoozedMeds]);
 
   const triggerReminder = (med, type) => {
     if (activeReminder) return;
-
     setActiveReminder({ ...med, type });
-    setSelectedMed(med);
     setTakenQty(med.tabletsPerDose || 1);
 
     if (type === "time") {
@@ -137,9 +121,7 @@ if (
       speakReminder(`${med.medicineName} is running low`, language);
     }
 
-    const timer = setTimeout(() => {
-      setActiveReminder(null);
-    }, 5 * 60 * 1000);
+    const timer = setTimeout(() => setActiveReminder(null), 5 * 60 * 1000);
     setRepeatTimer(timer);
   };
 
@@ -164,391 +146,385 @@ if (
       console.error("Stats error:", err);
     }
   };
-  const nextSite = (current) => {
-  const index = sites.indexOf(current);
-  return sites[(index + 1) % sites.length];
-};
+
   const handleAdd = async () => {
-  try {
-    await API.post("/medications", {
-      ...form,
-      injectionSite: (form.injectionSite),
-      totalTablets: Number(form.totalTablets),
-      tabletsPerDose: Number(form.tabletsPerDose),
-      dosesPerDay: Number(form.dosesPerDay),
-      lowStockThreshold: Number(form.lowStockThreshold)
-    });
+    if (!form.medicineName || !form.reminderTime || !form.dosage) {
+      return alert("Please fill out at least the Medicine Name, Dosage, and Reminder Time!");
+    }
+    try {
+      await API.post("/medications", {
+        ...form,
+        totalTablets: Number(form.totalTablets || 0),
+        tabletsPerDose: Number(form.tabletsPerDose || 1),
+        dosesPerDay: Number(form.dosesPerDay || 1),
+        lowStockThreshold: Number(form.lowStockThreshold || 5)
+      });
+      fetchMeds();
+      if (extractedQueue.length > 0) {
+        handleNextInQueue();
+      } else {
+        resetForm();
+      }
+      alert("Medicine beautifully saved!");
+    } catch (error) {
+      console.error(error);
+      alert("Save failed! " + (error.response?.data?.message || "Check your details."));
+    }
+  };
 
-    fetchMeds();
-
-    // ✅ move to next after user edit
-    handleNextInQueue();
-
-    alert("Medicine saved");
-
-  } catch (error) {
-    console.error(error);
-  }
-};
+  const handleUpdate = async () => {
+    try {
+      await API.put(`/medications/${editingId}`, {
+        ...editForm,
+        totalTablets: Number(editForm.totalTablets),
+        tabletsPerDose: Number(editForm.tabletsPerDose),
+        dosesPerDay: Number(editForm.dosesPerDay),
+        lowStockThreshold: Number(editForm.lowStockThreshold)
+      });
+      setEditingId(null);
+      fetchMeds();
+    } catch (error) {
+      console.error("Update failed:", error);
+    }
+  };
 
   const markTaken = async (med) => {
-  clearTimeout(repeatTimer);
-  setActiveReminder(null);
-
-  try {
-    // ✅ check if this is low stock reminder
-    const isLowStock =
-      activeReminder &&
-      activeReminder._id === med._id &&
-      activeReminder.type === "stock";
-
-    // ✅ use correct amount
-    const amount = isLowStock
-      ? Number(takenQty)
-      : Number(med.tabletsPerDose || 1);
-
-    const updatedCount = Math.max(
-      0,
-      Number(med.totalTablets) - amount
-    );
-
-    // ✅ UPDATE BACKEND
-    await API.put(`/medications/${med._id}`, {
-      ...med,
-      totalTablets: updatedCount
-    });
-
-    // ✅ LOG ENTRY
-    await API.post("/logs/taken", {
-      medicationId: med._id
-    });
-
-    // ✅ RESET INPUT (important)
-    setTakenQty(1);
-
-    // ✅ REFRESH UI
-    await fetchMeds();
-    await fetchStats();
-
-  } catch (error) {
-    console.error("Mark taken failed:", error);
-  }
-};
+    clearTimeout(repeatTimer);
+    setActiveReminder(null);
+    setSnoozedMeds(prev => { const copy = {...prev}; delete copy[med._id]; return copy; });
+    try {
+      // Backend automatically subtracts stock on this route
+      await API.post("/logs/taken", { medicationId: med._id });
+      setTakenQty(1);
+      await fetchMeds();
+      await fetchStats();
+    } catch (error) { console.error("Mark taken failed:", error); }
+  };
 
   const handleStockUpdate = async (med) => {
-  try {
-    const quantity = Number(takenQty);
+    try {
+      const quantity = Number(takenQty);
+      if (!quantity || quantity <= 0) return;
+      
+      // REFILL LOGIC: Add the quantity to existing stock
+      const updatedStock = Number(med.totalTablets) + quantity;
+      
+      setMedications((prev) => prev.map((m) => m._id === med._id ? { ...m, totalTablets: updatedStock } : m));
+      await API.put(`/medications/${med._id}`, { ...med, totalTablets: updatedStock });
+      
+      setTakenQty(1);
+      setActiveReminder(null);
+      fetchMeds();
+    } catch (error) { console.error("Stock update failed:", error); fetchMeds(); }
+  };
 
-    if (!quantity || quantity <= 0) return;
-
-    // ✅ Calculate updated values
-    const updatedStock = Math.max(
-      0,
-      Number(med.totalTablets) - quantity
-    );
-
-    const updatedDosesTaken =
-      Number(med.dosesTaken || 0) + quantity;
-
-    // ✅ 1. UPDATE UI IMMEDIATELY (optimistic update)
-    setMedications((prev) =>
-      prev.map((m) =>
-        m._id === med._id
-          ? {
-              ...m,
-              totalTablets: updatedStock,
-              dosesTaken: updatedDosesTaken
-            }
-          : m
-      )
-    );
-
-    // ✅ 2. SEND UPDATE TO BACKEND
-    await API.put(`/medications/${med._id}`, {
-      ...med,
-      totalTablets: updatedStock,
-      dosesTaken: updatedDosesTaken
-    });
-
-    // ✅ 3. LOG ENTRY (optional but recommended)
-    await API.post("/logs/taken", {
-      medicationId: med._id
-    });
-
-    // ✅ 4. RESET UI STATE
-    setTakenQty(1);
-    setActiveReminder(null);
-
-  } catch (error) {
-    console.error("Stock update failed:", error);
-
-    // ❗ OPTIONAL: rollback UI if API fails
-    fetchMeds();
-  }
-};
+  const startEdit = (med) => {
+    setEditingId(med._id);
+    setEditForm(med);
+  };
 
   const markMissed = async (id) => {
     clearTimeout(repeatTimer);
     setActiveReminder(null);
+    setSnoozedMeds(prev => { const copy = {...prev}; delete copy[id]; return copy; });
     await API.post("/logs/missed", { medicationId: id });
-    const med = medications.find(m => m._id === id);
-    setTimeout(() => { triggerReminder(med, "time"); }, 5 * 60 * 1000);
     fetchStats();
   };
 
-  const allowedFields = [
-    "medicineName", "dosage", "instructions", "reminderTime", 
-    "totalTablets", "tabletsPerDose", "dosesPerDay", "lowStockThreshold","injectionSite"
-  ];
+  const handleLaterPopup = () => {
+    if (activeReminder && activeReminder.type === "time") {
+      setSnoozedMeds(prev => ({ ...prev, [activeReminder._id]: Date.now() + 10 * 60 * 1000 }));
+    }
+    setActiveReminder(null);
+  };
 
-  const startEdit = (med) => {
-  setEditingId(med._id);
-  setEditForm(med); // Pre-fills the edit form with current data
-};
-
-const handleUpdate = async () => {
-  try {
-    await API.put(`/medications/${editingId}`, {
-      ...editForm,
-      totalTablets: Number(editForm.totalTablets),
-      tabletsPerDose: Number(editForm.tabletsPerDose),
-      dosesPerDay: Number(editForm.dosesPerDay),
-      lowStockThreshold: Number(editForm.lowStockThreshold)
-    });
-    setEditingId(null); // Exit edit mode
-    fetchMeds(); // Refresh the list
-  } catch (error) {
-    console.error("Update failed:", error);
-  }
-};
-    {showEmergency && (
-  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-    <div className="bg-white p-6 rounded-xl w-96 text-center">
-
-      <h2 className="text-xl font-bold text-red-600 mb-4">
-        ⚠ Hypoglycemia Alert
-      </h2>
-
-      <p className="text-sm mb-3">
-        Follow the <b>15-15 Rule</b>:
-      </p>
-
-      <ul className="text-left text-sm mb-4">
-        <li>• Take 15g fast sugar (glucose tablets, juice)</li>
-        <li>• Wait 15 minutes</li>
-        <li>• Recheck blood sugar</li>
-        <li>• Repeat if still low</li>
-      </ul>
-
-      <button
-        onClick={() => {
-          <a href="tel:1234567890">
-  <button className="bg-red-500 text-white px-4 py-2 rounded w-full mb-2">
-    📞 Call Emergency Contact
-  </button>
-</a> // replace later
-        }}
-        className="bg-red-500 text-white px-4 py-2 rounded w-full mb-2"
-      >
-        📞 Call Emergency Contact
-      </button>
-
-      <button
-        onClick={() => setShowEmergency(false)}
-        className="bg-gray-400 text-white px-4 py-2 rounded w-full"
-      >
-        Close
-      </button>
-
-    </div>
-  </div>
-)}
+  // Modern input group renderer for Add/Edit to avoid duplicate bindings
+  const renderInput = (stateMode, field, label, type = "text", wrapperClass="col-span-1") => {
+    const isEdit = stateMode === 'edit';
+    const val = isEdit ? (editForm[field] || "") : (form[field] || "");
+    const onChange = (e) => isEdit ? setEditForm({...editForm, [field]: e.target.value}) : setForm({...form, [field]: e.target.value});
+    
+    return (
+      <div className={`flex flex-col space-y-1 ${wrapperClass}`}>
+        <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{label}</label>
+        <input 
+          type={type} 
+          value={val} 
+          onChange={onChange} 
+          placeholder={`Enter ${label.toLowerCase()}`}
+          className="border-slate-200 bg-white/50 focus:bg-white text-slate-800 focus:ring-2 focus:ring-indigo-500 rounded-lg p-2.5 outline-none transition shadow-sm"
+        />
+      </div>
+    );
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-blue-100 p-6">
-    <Navbar />
-    <div className="flex justify-end mb-4">
-  <button
-    onClick={() => navigate("/profile")}
-    className="bg-gray-200 px-3 py-1 rounded"
-  >
-    👤 Profile
-  </button>
-</div>
-      <h1 className="text-3xl font-bold mb-4 text-blue-700">Dashboard</h1>
-
-      {/* SETTINGS BAR */}
-      <div className="flex flex-wrap items-center gap-3 mb-4">
-        <label className="font-semibold">Language:</label>
+    <div className="min-h-screen bg-slate-50">      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-end items-center gap-3 border-b border-slate-200/50 mb-4">
         <select
-          className="p-2 border rounded"
+          className="bg-transparent text-sm font-semibold text-slate-500 outline-none hover:text-slate-800 transition cursor-pointer"
           value={language}
           onChange={(e) => {
             setLanguage(e.target.value);
             localStorage.setItem("language", e.target.value);
           }}
         >
-          <option value="en-US">English</option>
-          <option value="hi-IN">Hindi</option>
-          <option value="kn-IN">Kannada</option>
-          <option value="ta-IN">Tamil</option>
+          <option value="en-US">🇺🇸 English</option>
+          <option value="hi-IN">🇮🇳 Hindi</option>
+          <option value="kn-IN">🇮🇳 Kannada</option>
+          <option value="ta-IN">🇮🇳 Tamil</option>
         </select>
-        <button onClick={() => (window.location.href = "/upload")} className="bg-purple-600 text-white px-3 py-2 rounded">
-          Upload Prescription
+        <button onClick={() => navigate("/profile")} className="bg-white/80 backdrop-blur border border-slate-200 px-4 py-1.5 rounded-full text-sm font-bold text-slate-700 hover:text-indigo-600 hover:shadow-md transition flex items-center gap-2">
+          👤 Profile
         </button>
       </div>
-          <select
-  value={form.injectionSite}
-  onChange={(e) =>
-    setForm({ ...form, injectionSite: e.target.value })
-  }
-  className="border p-2 rounded w-full"
->
-  <option value="">Select Injection Site</option>
-  <option>Left Abdomen</option>
-  <option>Right Abdomen</option>
-  <option>Left Thigh</option>
-  <option>Right Thigh</option>
-  <option>Left Arm</option>
-  <option>Right Arm</option>
-</select>
 
-      {/* ADD MEDICATION SECTION */}
-      <div className="bg-white p-4 rounded-xl shadow mb-6">
-        <h2 className="font-bold mb-3 text-lg">Add Medication</h2>
-        <div className="grid md:grid-cols-2 gap-3">
-          {allowedFields.map((field) => (
-            <input
-              key={field}
-              placeholder={field}
-              value={form.medicineName}
-onChange={(e) => setForm({ ...form, medicineName: e.target.value })}
-              className="p-2 border rounded focus:ring-2 focus:ring-blue-400 outline-none"
-            />
-          ))}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+        
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+          <div>
+            <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight">Your <span className="text-gradient">Dashboard</span></h1>
+            <p className="text-slate-500 mt-2 font-medium">Keep track of your health journey.</p>
+          </div>
+          
+          <div className="flex flex-wrap items-center gap-3">
+            <button onClick={() => navigate("/upload")} className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-600/30 px-5 py-2 rounded-full font-bold transition">
+              + Upload Prescription
+            </button>
+          </div>
         </div>
-        <button onClick={handleAdd} className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition">
-          Add Medication
-        </button>
-      </div>
-      <button
-        type="button"
-        onClick={handleNextInQueue}
-        className="bg-gray-400 text-white px-4 py-2 rounded"
-      >
-        Skip
-      </button>
-        {extractedQueue.length > 0 && (
-  <p className="text-blue-500 text-sm">
-    Reviewing {queueIndex + 1} of {extractedQueue.length}
-  </p>
-)}
-      <select
-  value={form.mealTiming}
-  onChange={(e) =>
-    setForm({ ...form, mealTiming: e.target.value })
-  }
-  className="border p-2 rounded w-full"
->
-  <option value="">Meal Timing</option>
-  <option>Before Food</option>
-  <option>After Food</option>
-  <option>With Food</option>
-</select>
-      {/* ANALYTICS & LIST (Omitted for brevity, keep your existing UI) */}
-      <div className="bg-white p-4 rounded-xl shadow mb-6">
-        <h2 className="font-bold mb-3">Weekly Report</h2>
-        <p>Taken: {stats.taken} | Missed: {stats.missed} | Adherence: {stats.adherence}%</p>
-      </div>
 
-      {/* 💊 MEDICATION LIST */}
-<div className="grid md:grid-cols-3 gap-4">
-  {medications.map((med) => (
-    <div key={med._id} className="bg-white p-4 rounded-xl shadow border-t-4 border-blue-500">
-      {editingId === med._id ? (
-        <>
-          {/* Edit Mode Inputs */}
-          {allowedFields.map((field) => (
-            <input
-              key={field}
-              value={form.medicineName}
-              onChange={(e) => setForm({ ...form, medicineName: e.target.value })}
-              className="p-2 border rounded mb-2 w-full text-sm"
-            />
-          ))}
-          <div className="flex gap-2 mt-2">
-            <button onClick={handleUpdate} className="bg-green-500 text-white px-3 py-1 rounded flex-1">Save</button>
-            <button onClick={() => setEditingId(null)} className="bg-gray-400 text-white px-3 py-1 rounded flex-1">Cancel</button>
-          </div>
-        </>
-      ) : (
-        <>
-          {/* View Mode */}
-          <h3 className="font-bold text-lg text-gray-800">{med.medicineName}</h3>
-          <p className="text-sm">Stock: {med.totalTablets} left</p>
-          <div className="flex gap-2 mt-4">
-            <button onClick={() => markTaken(med)} className="bg-green-500 text-white px-3 py-1 rounded flex-1">Taken</button>
-            <button onClick={() => markMissed(med._id)} className="bg-red-500 text-white px-3 py-1 rounded flex-1">Missed</button>
-            {/* ✅ THE MISSING BUTTON */}
-            <button onClick={() => startEdit(med)} className="bg-yellow-400 hover:bg-yellow-500 px-3 py-1 rounded">Edit</button>
-          </div>
-        </>
-      )}
-    </div>
-  ))}
-</div>
-      <button
-  onClick={() => setShowEmergency(true)}
-  className="bg-red-600 text-white px-4 py-2 rounded-lg font-bold mb-4"
->
-  🚨 Low Sugar Emergency
-</button>
-      {/* 🚨 REMINDER MODAL */}
-      {activeReminder && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-          <div className="bg-white p-8 rounded-2xl shadow-2xl text-center w-96">
-            <h2 className="text-2xl font-bold mb-4 text-gray-800">
-              {activeReminder.type === "time" ? "⏰ Medication Time!" : "⚠ Stock Running Low!"}
-            </h2>
-            <p className="text-lg text-gray-700 mb-4">
-              {activeReminder.type === "time"
-                ? `Please take your ${activeReminder.medicineName}.`
-                : `Enter tablets taken for ${activeReminder.medicineName}`}
-            </p>
-            {activeReminder.mealTiming && (
-  <p className="text-sm text-gray-600">
-    👉 Take {activeReminder.mealTiming}
-  </p>
-)}
-            {activeReminder.type === "stock" && (
-              <input
-            type="number"
-            value={takenQty}
-            min="1"
-            max={activeReminder?.totalTablets || 1}
-            onChange={(e) => setTakenQty(Number(e.target.value))}
-            className="border p-2 rounded w-full mb-4"
-/>
-            )}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
+          {/* LEFT COLUMN: Stats & Active Meds */}
+          <div className="col-span-2 space-y-8">
+            
+            {/* Stats Cards */}
+            <div className="grid grid-cols-3 gap-4">
+              <motion.div initial={{y: 20, opacity: 0}} animate={{y: 0, opacity: 1}} className="glass p-6 rounded-2xl relative overflow-hidden">
+                <div className="absolute -right-4 -top-4 w-24 h-24 bg-green-500/10 rounded-full blur-xl"></div>
+                <h3 className="text-slate-500 font-bold uppercase text-xs tracking-wider">Taken</h3>
+                <p className="text-4xl font-black text-slate-800 mt-2">{stats.taken}</p>
+              </motion.div>
+              <motion.div initial={{y: 20, opacity: 0}} animate={{y: 0, opacity: 1}} transition={{delay: 0.1}} className="glass p-6 rounded-2xl relative overflow-hidden">
+                <div className="absolute -right-4 -top-4 w-24 h-24 bg-red-500/10 rounded-full blur-xl"></div>
+                <h3 className="text-slate-500 font-bold uppercase text-xs tracking-wider">Missed</h3>
+                <p className="text-4xl font-black text-slate-800 mt-2">{stats.missed}</p>
+              </motion.div>
+              <motion.div initial={{y: 20, opacity: 0}} animate={{y: 0, opacity: 1}} transition={{delay: 0.2}} className="glass p-6 rounded-2xl relative overflow-hidden bg-gradient-to-br from-indigo-500 to-blue-600 border-none shadow-lg shadow-indigo-500/20">
+                <h3 className="text-white/80 font-bold uppercase text-xs tracking-wider">Adherence</h3>
+                <p className="text-4xl font-black text-white mt-2">{stats.adherence}%</p>
+              </motion.div>
+            </div>
 
-            <div className="flex justify-center gap-4">
-              <button
-              onClick={() => {
-               if (activeReminder.type === "stock") {
-                 handleStockUpdate(activeReminder);
-              } else {
-                markTaken(activeReminder);
-    }
-  }}
->
-  Taken
-</button>
-              <button onClick={() => setActiveReminder(null)} className="bg-gray-400 text-white px-6 py-2 rounded-xl font-bold">Close</button>
+            {/* Meds List */}
+            <div>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-slate-800">Active Medications</h2>
+                <button onClick={() => setShowEmergency(true)} className="bg-rose-100 text-rose-700 hover:bg-rose-200 px-4 py-1.5 rounded-full text-sm font-bold transition flex items-center gap-2">
+                  <span className="relative flex h-3 w-3"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span><span className="relative inline-flex rounded-full h-3 w-3 bg-rose-500"></span></span>
+                  Emergency
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <AnimatePresence>
+                  {medications.length === 0 && (
+                    <p className="text-slate-400 font-medium italic col-span-2">No active medications found. Add one to get started!</p>
+                  )}
+                  {medications.map((med) => (
+                    <motion.div layout initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} key={med._id} className="glass p-5 rounded-2xl hover:-translate-y-1 transition duration-300">
+                      {editingId === med._id ? (
+                        <div className="space-y-4">
+                          <h4 className="font-bold text-slate-800">Edit Medication</h4>
+                          <div className="grid grid-cols-2 gap-3">
+                            {renderInput('edit', 'medicineName', 'Name')}
+                            {renderInput('edit', 'dosage', 'Dosage')}
+                            {renderInput('edit', 'reminderTime', 'Time', 'time')}
+                            {renderInput('edit', 'totalTablets', 'Stock', 'number')}
+                          </div>
+                          <div className="flex gap-2 pt-2">
+                            <button onClick={handleUpdate} className="flex-1 bg-slate-900 text-white rounded-lg py-2 font-semibold hover:bg-slate-800 transition">Save</button>
+                            <button onClick={() => setEditingId(null)} className="flex-1 bg-slate-200 text-slate-700 rounded-lg py-2 font-semibold hover:bg-slate-300 transition">Cancel</button>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="flex justify-between items-start mb-4">
+                            <div>
+                              <h3 className="font-extrabold text-xl text-slate-900">{med.medicineName}</h3>
+                              <p className="text-indigo-600 font-semibold">{med.dosage} <span className="text-slate-400 font-normal">at {med.reminderTime}</span></p>
+                            </div>
+                            <div className="text-right">
+                              <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${med.totalTablets <= med.lowStockThreshold ? 'bg-orange-100 text-orange-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                                {med.totalTablets} left
+                              </span>
+                            </div>
+                          </div>
+                          {med.mealTiming && <p className="text-sm font-bold text-amber-600 mb-1">🍽️ {med.mealTiming}</p>}
+                          {med.injectionSite && <p className="text-sm font-bold text-blue-600 mb-1">💉 Site: {med.injectionSite}</p>}
+                          <p className="text-sm text-slate-500 mb-6">{med.instructions}</p>
+                          <div className="flex gap-2">
+                            <button onClick={() => markTaken(med)} className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-2 rounded-xl text-sm font-bold shadow-sm transition">Taken</button>
+                            <button onClick={() => markMissed(med._id)} className="flex-1 glass bg-white hover:bg-rose-50 text-rose-600 px-3 py-2 rounded-xl text-sm font-bold transition border-rose-200">Skip</button>
+                            <button onClick={() => startEdit(med)} className="w-[48px] glass bg-white hover:bg-slate-100 text-slate-600 flex items-center justify-center rounded-xl transition border-slate-200 text-xl">⚙️</button>
+                          </div>
+                        </>
+                      )}
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
             </div>
           </div>
+
+          {/* RIGHT COLUMN: Form & Usage Chart */}
+          <div className="space-y-6">
+            
+            {/* Add Medication Form */}
+            <div className="glass p-6 rounded-3xl border-t-4 border-t-indigo-500">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="font-bold text-xl text-slate-800">
+                  {extractedQueue.length > 0 ? "Review Scanned Info" : "Add Medication"}
+                </h2>
+                {extractedQueue.length > 0 && (
+                  <span className="bg-indigo-100 text-indigo-700 text-xs font-bold px-2 py-1 rounded-full">
+                    {queueIndex + 1} of {extractedQueue.length}
+                  </span>
+                )}
+              </div>
+
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  {renderInput('add', 'medicineName', 'Name', 'text', 'col-span-2')}
+                  {renderInput('add', 'dosage', 'Dosage')}
+                  {renderInput('add', 'reminderTime', 'Time', 'time')}
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3 pt-2">
+                  {renderInput('add', 'totalTablets', 'Stock', 'number')}
+                  {renderInput('add', 'lowStockThreshold', 'Alert At', 'number')}
+                  <div className="col-span-2 space-y-1">
+                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Instructions</label>
+                    <input type="text" value={form.instructions || ""} onChange={(e) => setForm({...form, instructions: e.target.value})} placeholder="e.g. After food" className="w-full border-slate-200 bg-white/50 focus:bg-white text-slate-800 focus:ring-2 focus:ring-indigo-500 rounded-lg p-2.5 outline-none transition shadow-sm"/>
+                  </div>
+                </div>
+
+                {/* Optional Overrides */}
+                <details className="text-sm text-slate-500 group cursor-pointer outline-none">
+                  <summary className="font-semibold mb-2">Advanced Details</summary>
+                  <div className="grid grid-cols-2 gap-3 mt-2">
+                    <div className="flex flex-col space-y-1">
+                      <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Site</label>
+                      <select value={form.injectionSite} onChange={(e) => setForm({...form, injectionSite: e.target.value})} className="border-slate-200 bg-white/50 focus:bg-white text-slate-800 focus:ring-2 focus:ring-indigo-500 rounded-lg p-2.5 outline-none transition shadow-sm">
+                        <option value="">None</option>
+                        <option>Left Abdomen</option>
+                        <option>Right Abdomen</option>
+                        <option>Left Thigh</option>
+                        <option>Right Thigh</option>
+                        <option>Left Arm</option>
+                        <option>Right Arm</option>
+                      </select>
+                    </div>
+                    
+                    <div className="flex flex-col space-y-1">
+                      <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Meal Timing</label>
+                      <select value={form.mealTiming || ""} onChange={(e) => setForm({...form, mealTiming: e.target.value})} className="border-slate-200 bg-white/50 focus:bg-white text-slate-800 focus:ring-2 focus:ring-indigo-500 rounded-lg p-2.5 outline-none transition shadow-sm">
+                        <option value="">No specific timing</option>
+                        <option>Fasting (Empty Stomach)</option>
+                        <option>Before Food</option>
+                        <option>With Food</option>
+                        <option>After Food</option>
+                      </select>
+                    </div>
+
+                    {renderInput('add', 'dosesPerDay', 'Freq/Day', 'number', 'col-span-2')}
+                  </div>
+                </details>
+
+                <div className="flex gap-2 pt-4">
+                  <button onClick={handleAdd} className="flex-2 w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-bold shadow-lg shadow-indigo-600/30 transition">
+                    {extractedQueue.length > 0 ? "Save & Next" : "Save Medication"}
+                  </button>
+                  {extractedQueue.length > 0 && (
+                    <button onClick={handleNextInQueue} className="flex-1 w-full glass bg-white hover:bg-slate-100 text-slate-700 py-3 rounded-xl font-bold transition">Skip</button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Chart Wrapper */}
+            <div className="glass p-6 rounded-3xl">
+              <h2 className="font-bold mb-4 text-slate-800">Weekly Adherence</h2>
+              <UsageChart />
+            </div>
+
+          </div>
         </div>
-      )}
-      <UsageChart />
+      </div>
+
+      {/* Emergency Modal */}
+      <AnimatePresence>
+        {showEmergency && (
+          <motion.div initial={{opacity: 0}} animate={{opacity: 1}} exit={{opacity: 0}} className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <motion.div initial={{scale: 0.9, y: 20}} animate={{scale: 1, y: 0}} exit={{scale: 0.9, y: 20}} className="glass-dark p-8 rounded-3xl w-full max-w-md text-center text-white border-rose-500/30">
+              <div className="w-16 h-16 bg-rose-500/20 text-rose-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-4">🚨</div>
+              <h2 className="text-2xl font-black mb-4">Hypoglycemia Alert</h2>
+              <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-left mb-6">
+                <p className="font-bold text-rose-300 mb-2 border-b border-white/10 pb-2">Follow the 15-15 Rule:</p>
+                <ul className="text-sm space-y-2 text-slate-300">
+                  <li><span className="text-white mr-2">1.</span>Take 15g fast sugar (glucose, juice)</li>
+                  <li><span className="text-white mr-2">2.</span>Wait 15 minutes</li>
+                  <li><span className="text-white mr-2">3.</span>Recheck blood sugar</li>
+                  <li><span className="text-white mr-2">4.</span>Repeat if still low</li>
+                </ul>
+              </div>
+              <a href="tel:1234567890" className="block w-full bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 rounded-xl mb-3 shadow-lg shadow-rose-500/30 transition">
+                📞 Call Emergency Contact
+              </a>
+              <button onClick={() => setShowEmergency(false)} className="w-full bg-white/10 hover:bg-white/20 text-white font-bold py-3 rounded-xl transition">
+                Dismiss
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Reminder Modal */}
+      <AnimatePresence>
+        {activeReminder && (
+          <motion.div initial={{opacity: 0}} animate={{opacity: 1}} exit={{opacity: 0}} className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <motion.div initial={{scale: 0.9, y: 20}} animate={{scale: 1, y: 0}} exit={{scale: 0.9, y: 20}} className="glass p-8 rounded-3xl w-full max-w-md text-center shadow-2xl">
+              <div className={`w-20 h-20 mx-auto rounded-full flex items-center justify-center text-4xl mb-4 ${activeReminder.type === 'time' ? 'bg-indigo-100 text-indigo-500' : 'bg-orange-100 text-orange-500'}`}>
+                {activeReminder.type === "time" ? "⏰" : "⚠️"}
+              </div>
+              <h2 className="text-3xl font-black mb-2 text-slate-800">
+                {activeReminder.type === "time" ? "Medication Time!" : "Stock Alert!"}
+              </h2>
+              <p className="text-slate-600 text-lg font-medium mb-6">
+                {activeReminder.type === "time" ? `Please take your ${activeReminder.medicineName}.` : `Update inventory for ${activeReminder.medicineName}.`}
+              </p>
+              
+              {activeReminder.type === "stock" && (
+                <div className="mb-6 text-left">
+                  <label className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2 block">Refill Amount (Tablets Added)</label>
+                  <input type="number" value={takenQty} min="1" onChange={(e) => setTakenQty(Number(e.target.value))} className="w-full text-center text-2xl font-bold border-2 border-slate-200 focus:border-indigo-500 focus:ring-0 rounded-xl p-3 outline-none" />
+                </div>
+              )}
+
+              <div className="flex gap-3">
+                <button onClick={() => { if (activeReminder.type === "stock") handleStockUpdate(activeReminder); else markTaken(activeReminder); }} className="flex-2 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-indigo-600/30 transition">
+                  Confirm
+                </button>
+                <button onClick={handleLaterPopup} className="flex-1 w-full glass bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-xl transition">
+                  Later
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

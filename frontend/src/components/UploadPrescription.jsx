@@ -38,10 +38,16 @@ function UploadPrescription() {
     setLoading(true);
     try {
       const data = await uploadPrescription(file);
-      const extractedText = data.extractedText || "";
+      const extractedText = data?.prescription?.extractedText || "";
       setText(extractedText);
 
-      const meds = extractMedicines(extractedText);
+      let meds = extractMedicines(extractedText);
+      
+      // Fallback: if regex didn't find specific dosage words, just grab the first line or raw text
+      if (meds.length === 0 && extractedText.trim() !== "") {
+         meds = [extractedText.split("\n")[0]]; // use first line as best guess
+      }
+
       const parsedMeds = meds.map(med => parseMedicine(med));
 
       // ✅ Store with specific keys

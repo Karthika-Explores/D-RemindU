@@ -12,7 +12,7 @@ exports.markTaken = async (req, res) => {
       return res.status(404).json({ message: "Medication not found" });
     }
 
-    if (medication.userId.toString() !== req.user.toString()) {
+    if (medication.userId.toString() !== req.user._id.toString()) {
       return res.status(401).json({ message: "Not authorized" });
     }
 
@@ -28,7 +28,7 @@ exports.markTaken = async (req, res) => {
 
     // 📝 Create log
     const log = await Log.create({
-      userId: req.user,
+      userId: req.user._id,
       medicationId,
       status: "Taken"
     });
@@ -54,12 +54,12 @@ exports.markMissed = async (req, res) => {
       return res.status(404).json({ message: "Medication not found" });
     }
 
-    if (medication.userId.toString() !== req.user.toString()) {
+    if (medication.userId.toString() !== req.user._id.toString()) {
       return res.status(401).json({ message: "Not authorized" });
     }
 
     const log = await Log.create({
-      userId: req.user,
+      userId: req.user._id,
       medicationId,
       status: "Missed"
     });
@@ -76,8 +76,7 @@ exports.markMissed = async (req, res) => {
 exports.getLogs = async (req, res) => {
   try {
     // 🚨 Ensure we are using req.user, which comes from the 'protect' middleware
-    const logs = await Log.find({ userId: req.user
- })
+    const logs = await Log.find({ userId: req.user._id })
       .sort({ createdAt: -1 });
 
     res.status(200).json(logs || []); 

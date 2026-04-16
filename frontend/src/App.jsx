@@ -5,7 +5,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Upload from "./components/UploadPrescription";
-import UserProfile from "./pages/UserProfile";
+import UserProfile from "./components/UserProfile";
 function App() {
   return (
     <Router>
