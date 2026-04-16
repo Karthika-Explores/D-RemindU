@@ -16,12 +16,12 @@ exports.markTaken = async (req, res) => {
       return res.status(401).json({ message: "Not authorized" });
     }
 
-    // 🧠 Reduce tablets
-    const tabletsToReduce = medication.tabletsPerDose;
+    // 🧠 Reduce tablets safely
+    const tabletsToReduce = Number(medication.tabletsPerDose) || 1;
 
     medication.totalTablets = Math.max(
       0,
-      medication.totalTablets - tabletsToReduce
+      Number(medication.totalTablets || 0) - tabletsToReduce
     );
 
     await medication.save();

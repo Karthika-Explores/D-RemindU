@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import UsageChart from "../components/UsageChart";
 
-let lastTriggered = "";
+let triggeredCache = {};
 
 function Dashboard() {
   const [form, setForm] = useState({
@@ -89,9 +89,10 @@ function Dashboard() {
       medications.forEach((med) => {
         if (med.reminderTime) {
           const [hh, mm] = med.reminderTime.split(":");
+          const timeKey = med._id + "time" + h + m;
           // Exact time trigger
-          if (Number(hh) === h && Number(mm) === m && lastTriggered !== med._id + h + m) {
-            lastTriggered = med._id + h + m;
+          if (Number(hh) === h && Number(mm) === m && !triggeredCache[timeKey]) {
+            triggeredCache[timeKey] = true;
             triggerReminder(med, "time");
           }
           // 10-Minute Snooze Trigger
@@ -103,8 +104,9 @@ function Dashboard() {
         
         // 3x Daily Low Stock Reminder (9 AM, 2 PM, 7 PM)
         if (Number(med.totalTablets) <= Number(med.lowStockThreshold)) {
-          if ((h === 9 || h === 14 || h === 19) && m === 0 && lastTriggered !== med._id + "stock" + h) {
-            lastTriggered = med._id + "stock" + h;
+          const stockKey = med._id + "stock" + h;
+          if ((h === 9 || h === 14 || h === 19) && m === 0 && !triggeredCache[stockKey]) {
+            triggeredCache[stockKey] = true;
             triggerReminder(med, "stock");
           }
         }
@@ -119,10 +121,10 @@ function Dashboard() {
     setTakenQty(med.tabletsPerDose || 1);
 
     if (type === "time") {
-      speakReminder(med.medicineName, language);
+      speakReminder(med.medicineName, language, "time");
       setSnoozedMeds(prev => ({ ...prev, [med._id]: Date.now() + 10 * 60 * 1000 }));
     } else if (type === "stock") {
-      speakReminder(`${med.medicineName} is running low`, language);
+      speakReminder(med.medicineName, language, "stock");
     }
 
     const timer = setTimeout(() => setActiveReminder(null), 5 * 60 * 1000);
@@ -168,7 +170,8 @@ function Dashboard() {
       } else {
         resetForm();
       }
-      window.location.reload();
+      fetchMeds();
+      fetchStats();
     } catch (error) {
       console.error(error);
       alert("Save failed! " + (error.response?.data?.message || "Check your details."));
@@ -185,7 +188,8 @@ function Dashboard() {
         lowStockThreshold: Number(editForm.lowStockThreshold)
       });
       setEditingId(null);
-      window.location.reload();
+      fetchMeds();
+      fetchStats();
     } catch (error) {
       console.error("Update failed:", error);
     }
@@ -198,7 +202,8 @@ function Dashboard() {
     try {
       await API.post("/logs/taken", { medicationId: med._id });
       setTakenQty(1);
-      window.location.reload();
+      fetchMeds();
+      fetchStats();
     } catch (error) { console.error("Mark taken failed:", error); }
   };
 
@@ -213,7 +218,8 @@ function Dashboard() {
       
       setTakenQty(1);
       setActiveReminder(null);
-      window.location.reload();
+      fetchMeds();
+      fetchStats();
     } catch (error) { console.error("Stock update failed:", error); fetchMeds(); }
   };
 
@@ -227,7 +233,8 @@ function Dashboard() {
     setActiveReminder(null);
     setSnoozedMeds(prev => { const copy = {...prev}; delete copy[id]; return copy; });
     await API.post("/logs/missed", { medicationId: id });
-    window.location.reload();
+    fetchMeds();
+    fetchStats();
   };
 
   const handleLaterPopup = () => {
@@ -454,7 +461,7 @@ function Dashboard() {
             {/* Chart Wrapper */}
             <div className="glass p-6 rounded-3xl">
               <h2 className="font-bold mb-4 text-slate-800">{t.weeklyAdherenceTitle}</h2>
-              <UsageChart />
+              <UsageChart key={stats.taken + stats.missed} />
             </div>
 
           </div>
