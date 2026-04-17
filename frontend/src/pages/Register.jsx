@@ -1,7 +1,7 @@
 import { useState } from "react";
 import API from "../services/api";
 import { motion } from "framer-motion";
-import { translations } from "../utils/i18n";
+import { translations } from "../utils/translations";
 
 function Register() {
   const [form, setForm] = useState({});
@@ -11,8 +11,8 @@ function Register() {
 
   const handleRegister = async () => {
     try {
-      if(!form.name || !form.email || !form.password || !form.age) {
-          alert("Please fill mandatory fields: name, email, password, age");
+      if(!form.name || !form.email || !form.password || !form.age || !form.emergencyContact) {
+          alert("Please fill mandatory fields: name, email, password, age, emergency contact");
           return;
       }
       await API.post("/auth/register", form);
@@ -30,6 +30,7 @@ function Register() {
     { name: "age", label: t.ageLabel, type: "number", placeholder: "" },
     { name: "weight", label: t.weightLabel, type: "number", placeholder: "" },
     { name: "glucoseLevel", label: t.glucoseLabel, type: "number", placeholder: "" },
+    { name: "emergencyContact", label: t.emergencyContactLabel || "Emergency Contact", type: "tel", placeholder: "e.g. 1234567890" },
   ];
 
   return (

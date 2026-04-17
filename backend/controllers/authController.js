@@ -12,7 +12,7 @@ const generateToken = (id) => {
 // ✅ Register User
 const registerUser = async (req, res) => {
   try {
-    const { name, email, password, age, weight, glucoseLevel } = req.body;
+    const { name, email, password, age, weight, glucoseLevel, emergencyContact } = req.body;
 
     const userExists = await User.findOne({ email });
     if (userExists) {
@@ -32,13 +32,15 @@ const registerUser = async (req, res) => {
       password: hashedPassword,
       age,
       weight,
-      glucoseLevel
+      glucoseLevel,
+      emergencyContact
     });
 
     res.status(201).json({
       _id: user._id,
       name: user.name,
       email: user.email,
+      emergencyContact: user.emergencyContact,
       token: generateToken(user._id)
     });
   } catch (error) {
@@ -58,6 +60,7 @@ const loginUser = async (req, res) => {
         _id: user._id,
         name: user.name,
         email: user.email,
+        emergencyContact: user.emergencyContact,
         token: generateToken(user._id)
       });
     } else {

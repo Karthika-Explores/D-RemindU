@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import API from "../services/api";
 import { speakReminder } from "../utils/voice";
-import { translations } from "../utils/i18n";
+import { translations } from "../utils/translations";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import UsageChart from "../components/UsageChart";
@@ -32,13 +32,24 @@ function Dashboard() {
   const [repeatTimer, setRepeatTimer] = useState(null);
   const [triggeredStock, setTriggeredStock] = useState({});
   const [showEmergency, setShowEmergency] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
   const [takenQty, setTakenQty] = useState(1);
   const [extractedQueue, setExtractedQueue] = useState([]);
   const [stats, setStats] = useState({ taken: 0, missed: 0, adherence: 0 });
   const [snoozedMeds, setSnoozedMeds] = useState({});
+  const [loggedToday, setLoggedToday] = useState({});
   const navigate = useNavigate();
 
   const t = translations[language] || translations["en-US"];
+
+  const userStr = localStorage.getItem("user");
+  let emergencyContact = "1234567890";
+  if (userStr) {
+    try {
+      const u = JSON.parse(userStr);
+      if (u && u.emergencyContact) emergencyContact = u.emergencyContact;
+    } catch(e) {}
+  }
 
   useEffect(() => {
     const stored = localStorage.getItem("extractedMeds");
@@ -49,6 +60,7 @@ function Dashboard() {
           setExtractedQueue(data);
           setQueueIndex(0);
           setForm(data[0]);
+          setShowAddModal(true);
         }
       } catch (e) {
         console.error("Queue parse error:", e);
@@ -65,6 +77,7 @@ function Dashboard() {
       setQueueIndex(0);
       localStorage.removeItem("extractedMeds");
       resetForm();
+      setShowAddModal(false);
       return;
     }
     setQueueIndex(nextIndex);
@@ -175,6 +188,7 @@ function Dashboard() {
         handleNextInQueue();
       } else {
         resetForm();
+        setShowAddModal(false);
       }
       fetchMeds();
       fetchStats();
@@ -202,6 +216,10 @@ function Dashboard() {
   };
 
   const markTaken = async (med) => {
+    if (loggedToday[med._id]) {
+      alert("You have already logged this medication session!");
+      return;
+    }
     if (Number(med.totalTablets) <= 0) {
       alert("No stock left! Please update inventory before logging.");
       return;
@@ -212,6 +230,7 @@ function Dashboard() {
     try {
       await API.post("/logs/taken", { medicationId: med._id });
       setTakenQty(1);
+      setLoggedToday(prev => ({ ...prev, [med._id]: true }));
       fetchMeds();
       fetchStats();
     } catch (error) { console.error("Mark taken failed:", error); }
@@ -239,6 +258,10 @@ function Dashboard() {
   };
 
   const markMissed = async (id, med) => {
+    if (loggedToday[id]) {
+      alert("You have already logged this medication session!");
+      return;
+    }
     // Requires med object to check stock
     if (med && Number(med.totalTablets) <= 0) {
       alert("No stock left! Please update inventory before logging.");
@@ -248,6 +271,7 @@ function Dashboard() {
     setActiveReminder(null);
     setSnoozedMeds(prev => { const copy = {...prev}; delete copy[id]; return copy; });
     await API.post("/logs/missed", { medicationId: id });
+    setLoggedToday(prev => ({ ...prev, [id]: true }));
     fetchMeds();
     fetchStats();
   };
@@ -310,6 +334,9 @@ function Dashboard() {
           <div className="flex flex-wrap items-center gap-3">
             <button onClick={() => navigate("/upload")} className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-600/30 px-5 py-2 rounded-full font-bold transition">
               {t.uploadBtn}
+            </button>
+            <button onClick={() => setShowAddModal(true)} className="glass bg-white hover:bg-indigo-50 text-indigo-700 px-5 py-2 rounded-full font-bold transition shadow-sm border border-indigo-100 flex items-center gap-2">
+              <span className="text-xl leading-none -mt-1">+</span> {t.addMedTitle}
             </button>
           </div>
         </div>
@@ -385,8 +412,8 @@ function Dashboard() {
                           {med.injectionSite && <p className="text-sm font-bold text-blue-600 mb-1">💉 {t.siteText} {med.injectionSite}</p>}
                           <p className="text-sm text-slate-500 mb-6">{med.instructions}</p>
                           <div className="flex gap-2">
-                            <button onClick={() => markTaken(med)} className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-2 rounded-xl text-sm font-bold shadow-sm transition">{t.takenLabel}</button>
-                            <button onClick={() => markMissed(med._id, med)} className="flex-1 glass bg-white hover:bg-rose-50 text-rose-600 px-3 py-2 rounded-xl text-sm font-bold transition border-rose-200">{t.skipBtn}</button>
+                            <button onClick={() => markTaken(med)} disabled={loggedToday[med._id]} className={`flex-1 px-3 py-2 rounded-xl text-sm font-bold shadow-sm transition ${loggedToday[med._id] ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-emerald-500 hover:bg-emerald-600 text-white'}`}>{loggedToday[med._id] ? 'Logged' : t.takenLabel}</button>
+                            <button onClick={() => markMissed(med._id, med)} disabled={loggedToday[med._id]} className={`flex-1 glass px-3 py-2 rounded-xl text-sm font-bold transition border-slate-200 ${loggedToday[med._id] ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-white hover:bg-rose-50 text-rose-600 border-rose-200'}`}>{t.skipBtn}</button>
                             <button onClick={() => startEdit(med)} className="w-[48px] glass bg-white hover:bg-slate-100 text-slate-600 flex items-center justify-center rounded-xl transition border-slate-200 text-xl">⚙️</button>
                           </div>
                         </>
@@ -398,17 +425,34 @@ function Dashboard() {
             </div>
           </div>
 
-          {/* RIGHT COLUMN: Form & Usage Chart */}
+          {/* RIGHT COLUMN: Usage Chart */}
           <div className="space-y-6 w-full max-w-lg mx-auto lg:max-w-none">
-            
-            {/* Add Medication Form */}
-            <div className="glass p-6 rounded-3xl border-t-4 border-t-indigo-500">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="font-bold text-xl text-slate-800">
+            {/* Chart Wrapper */}
+            <div className="glass p-6 rounded-3xl">
+              <h2 className="font-bold mb-4 text-slate-800">{t.weeklyAdherenceTitle}</h2>
+              <UsageChart key={stats.taken + stats.missed} />
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      {/* Add Medication Modal */}
+      <AnimatePresence>
+        {showAddModal && (
+          <motion.div initial={{opacity: 0}} animate={{opacity: 1}} exit={{opacity: 0}} className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <motion.div initial={{scale: 0.9, y: 20}} animate={{scale: 1, y: 0}} exit={{scale: 0.9, y: 20}} className="glass bg-white p-6 sm:p-8 rounded-[2.5rem] w-full max-w-2xl max-h-[90vh] overflow-y-auto text-left shadow-2xl relative border-t-8 border-t-indigo-500">
+              {/* Close Button */}
+              <button onClick={() => setShowAddModal(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-600 transition bg-slate-100 hover:bg-slate-200 rounded-full w-8 h-8 flex items-center justify-center font-bold">
+                ✕
+              </button>
+
+              <div className="mb-6 pr-8">
+                <h2 className="font-extrabold text-2xl text-slate-900">
                   {extractedQueue.length > 0 ? t.reviewScanned : t.addMedTitle}
                 </h2>
                 {extractedQueue.length > 0 && (
-                  <span className="bg-indigo-100 text-indigo-700 text-xs font-bold px-2 py-1 rounded-full">
+                  <span className="bg-indigo-100 text-indigo-700 text-xs font-bold px-2 py-1 rounded-full mt-2 inline-block">
                     {queueIndex + 1} of {extractedQueue.length}
                   </span>
                 )}
@@ -471,17 +515,10 @@ function Dashboard() {
                   )}
                 </div>
               </div>
-            </div>
-
-            {/* Chart Wrapper */}
-            <div className="glass p-6 rounded-3xl">
-              <h2 className="font-bold mb-4 text-slate-800">{t.weeklyAdherenceTitle}</h2>
-              <UsageChart key={stats.taken + stats.missed} />
-            </div>
-
-          </div>
-        </div>
-      </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Emergency Modal */}
       <AnimatePresence>
@@ -499,7 +536,7 @@ function Dashboard() {
                   <li><span className="text-white mr-2">4.</span>{t.hypoStep4}</li>
                 </ul>
               </div>
-              <a href="tel:1234567890" className="block w-full bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 rounded-xl mb-3 shadow-lg shadow-rose-500/30 transition">
+              <a href={`tel:${emergencyContact}`} className="block w-full bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 rounded-xl mb-3 shadow-lg shadow-rose-500/30 transition">
                 📞 {t.callEmergency}
               </a>
               <button onClick={() => setShowEmergency(false)} className="w-full bg-white/10 hover:bg-white/20 text-white font-bold py-3 rounded-xl transition">

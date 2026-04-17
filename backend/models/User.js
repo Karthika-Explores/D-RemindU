@@ -7,7 +7,8 @@ const userSchema = new mongoose.Schema(
     password: { type: String, required: true },
     age: { type: Number, required: true },
     weight: { type: Number, required: true },
-    glucoseLevel: { type: Number, required: true }
+    glucoseLevel: { type: Number, required: true },
+    emergencyContact: { type: String }
   },
   { timestamps: true }
 );

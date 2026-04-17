@@ -1,7 +1,7 @@
 import { useState } from "react";
 import API from "../services/api";
 import { motion } from "framer-motion";
-import { translations } from "../utils/i18n";
+import { translations } from "../utils/translations";
 
 function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
