@@ -48,7 +48,7 @@ function Dashboard() {
     try {
       const u = JSON.parse(userStr);
       if (u && u.emergencyContact) emergencyContact = u.emergencyContact;
-    } catch(e) {}
+    } catch (e) { }
   }
 
   useEffect(() => {
@@ -110,11 +110,11 @@ function Dashboard() {
           }
           // 10-Minute Snooze Trigger
           if (snoozedMeds[med._id] && now.getTime() >= snoozedMeds[med._id]) {
-             setSnoozedMeds(prev => { const copy = {...prev}; delete copy[med._id]; return copy; });
-             triggerReminder(med, "time");
+            setSnoozedMeds(prev => { const copy = { ...prev }; delete copy[med._id]; return copy; });
+            triggerReminder(med, "time");
           }
         }
-        
+
         // 3x Daily Low Stock Reminder (9 AM, 2 PM, 7 PM)
         if (Number(med.totalTablets) <= Number(med.lowStockThreshold)) {
           const stockKey = med._id + "stock" + h;
@@ -226,7 +226,7 @@ function Dashboard() {
     }
     clearTimeout(repeatTimer);
     setActiveReminder(null);
-    setSnoozedMeds(prev => { const copy = {...prev}; delete copy[med._id]; return copy; });
+    setSnoozedMeds(prev => { const copy = { ...prev }; delete copy[med._id]; return copy; });
     try {
       await API.post("/logs/taken", { medicationId: med._id });
       setTakenQty(1);
@@ -240,11 +240,11 @@ function Dashboard() {
     try {
       const quantity = Number(takenQty);
       if (!quantity || quantity <= 0) return;
-      
+
       const updatedStock = Number(med.totalTablets) + quantity;
-      
+
       await API.put(`/medications/${med._id}`, { ...med, totalTablets: updatedStock });
-      
+
       setTakenQty(1);
       setActiveReminder(null);
       fetchMeds();
@@ -269,7 +269,7 @@ function Dashboard() {
     }
     clearTimeout(repeatTimer);
     setActiveReminder(null);
-    setSnoozedMeds(prev => { const copy = {...prev}; delete copy[id]; return copy; });
+    setSnoozedMeds(prev => { const copy = { ...prev }; delete copy[id]; return copy; });
     await API.post("/logs/missed", { medicationId: id });
     setLoggedToday(prev => ({ ...prev, [id]: true }));
     fetchMeds();
@@ -283,18 +283,18 @@ function Dashboard() {
     setActiveReminder(null);
   };
 
-  const renderInput = (stateMode, field, label, type = "text", wrapperClass="col-span-1") => {
+  const renderInput = (stateMode, field, label, type = "text", wrapperClass = "col-span-1") => {
     const isEdit = stateMode === 'edit';
     const val = isEdit ? (editForm[field] || "") : (form[field] || "");
-    const onChange = (e) => isEdit ? setEditForm({...editForm, [field]: e.target.value}) : setForm({...form, [field]: e.target.value});
-    
+    const onChange = (e) => isEdit ? setEditForm({ ...editForm, [field]: e.target.value }) : setForm({ ...form, [field]: e.target.value });
+
     return (
       <div className={`flex flex-col space-y-1 ${wrapperClass}`}>
         <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{label}</label>
-        <input 
-          type={type} 
-          value={val} 
-          onChange={onChange} 
+        <input
+          type={type}
+          value={val}
+          onChange={onChange}
           className="border-slate-200 bg-white/50 focus:bg-white text-slate-800 focus:ring-2 focus:ring-indigo-500 rounded-lg p-2.5 outline-none transition shadow-sm"
         />
       </div>
@@ -302,7 +302,7 @@ function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">      
+    <div className="min-h-screen bg-slate-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-end items-center gap-3 border-b border-slate-200/50 mb-4">
         <select
           className="bg-transparent text-sm font-semibold text-slate-500 outline-none hover:text-slate-800 transition cursor-pointer"
@@ -323,14 +323,14 @@ function Dashboard() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
-        
+
         {/* Header Section */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
             <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight">{t.dashboardTitle1} <span className="text-gradient">{t.dashboardTitle2}</span></h1>
             <p className="text-slate-500 mt-2 font-medium">{t.dashboardSubtitle}</p>
           </div>
-          
+
           <div className="flex flex-wrap items-center gap-3">
             <button onClick={() => navigate("/upload")} className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-600/30 px-5 py-2 rounded-full font-bold transition">
               {t.uploadBtn}
@@ -342,23 +342,23 @@ function Dashboard() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
+
           {/* LEFT COLUMN: Stats & Active Meds */}
           <div className="col-span-2 space-y-8">
-            
+
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <motion.div initial={{y: 20, opacity: 0}} animate={{y: 0, opacity: 1}} className="glass p-6 rounded-2xl relative overflow-hidden">
+              <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="glass p-6 rounded-2xl relative overflow-hidden">
                 <div className="absolute -right-4 -top-4 w-24 h-24 bg-green-500/10 rounded-full blur-xl"></div>
                 <h3 className="text-slate-500 font-bold uppercase text-xs tracking-wider">{t.takenLabel}</h3>
                 <p className="text-4xl font-black text-slate-800 mt-2">{stats.taken}</p>
               </motion.div>
-              <motion.div initial={{y: 20, opacity: 0}} animate={{y: 0, opacity: 1}} transition={{delay: 0.1}} className="glass p-6 rounded-2xl relative overflow-hidden">
+              <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1 }} className="glass p-6 rounded-2xl relative overflow-hidden">
                 <div className="absolute -right-4 -top-4 w-24 h-24 bg-red-500/10 rounded-full blur-xl"></div>
                 <h3 className="text-slate-500 font-bold uppercase text-xs tracking-wider">{t.missedLabel}</h3>
                 <p className="text-4xl font-black text-slate-800 mt-2">{stats.missed}</p>
               </motion.div>
-              <motion.div initial={{y: 20, opacity: 0}} animate={{y: 0, opacity: 1}} transition={{delay: 0.2}} className="glass p-6 rounded-2xl relative overflow-hidden bg-gradient-to-br from-indigo-500 to-blue-600 border-none shadow-lg shadow-indigo-500/20">
+              <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }} className="glass p-6 rounded-2xl relative overflow-hidden bg-gradient-to-br from-indigo-500 to-blue-600 border-none shadow-lg shadow-indigo-500/20">
                 <h3 className="text-white/80 font-bold uppercase text-xs tracking-wider">{t.adherenceLabel}</h3>
                 <p className="text-4xl font-black text-white mt-2">{stats.adherence}%</p>
               </motion.div>
@@ -400,7 +400,11 @@ function Dashboard() {
                           <div className="flex justify-between items-start mb-4">
                             <div>
                               <h3 className="font-extrabold text-xl text-slate-900">{med.medicineName}</h3>
-                              <p className="text-indigo-600 font-semibold">{med.dosage} <span className="text-slate-400 font-normal">at {med.reminderTime}</span></p>
+                              <p className="text-indigo-600 font-semibold">
+                                {med.dosage}{/^\d+(\.\d+)?$/.test(String(med.dosage).trim()) ? ' mg' : ''}
+                                {med.tabletsPerDose ? ` (${med.tabletsPerDose} ${med.tabletsPerDose == 1 ? 'tablet' : 'tablets'})` : ''}
+                                <span className="text-slate-400 font-normal"> at {med.reminderTime}</span>
+                              </p>
                             </div>
                             <div className="text-right">
                               <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${med.totalTablets <= med.lowStockThreshold ? 'bg-orange-100 text-orange-700' : 'bg-emerald-100 text-emerald-700'}`}>
@@ -440,8 +444,8 @@ function Dashboard() {
       {/* Add Medication Modal */}
       <AnimatePresence>
         {showAddModal && (
-          <motion.div initial={{opacity: 0}} animate={{opacity: 1}} exit={{opacity: 0}} className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <motion.div initial={{scale: 0.9, y: 20}} animate={{scale: 1, y: 0}} exit={{scale: 0.9, y: 20}} className="glass bg-white p-6 sm:p-8 rounded-[2.5rem] w-full max-w-2xl max-h-[90vh] overflow-y-auto text-left shadow-2xl relative border-t-8 border-t-indigo-500">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className="glass bg-white p-6 sm:p-8 rounded-[2.5rem] w-full max-w-2xl max-h-[90vh] overflow-y-auto text-left shadow-2xl relative border-t-8 border-t-indigo-500">
               {/* Close Button */}
               <button onClick={() => setShowAddModal(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-600 transition bg-slate-100 hover:bg-slate-200 rounded-full w-8 h-8 flex items-center justify-center font-bold">
                 ✕
@@ -464,13 +468,19 @@ function Dashboard() {
                   {renderInput('add', 'dosage', 'Dosage')}
                   {renderInput('add', 'reminderTime', 'Time', 'time')}
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
                   {renderInput('add', 'totalTablets', 'Stock', 'number')}
                   {renderInput('add', 'lowStockThreshold', 'Alert At', 'number')}
-                  <div className="md:col-span-2 space-y-1">
-                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Instructions</label>
-                    <input type="text" value={form.instructions || ""} onChange={(e) => setForm({...form, instructions: e.target.value})} placeholder="" className="w-full border-slate-200 bg-white/50 focus:bg-white text-slate-800 focus:ring-2 focus:ring-indigo-500 rounded-lg p-2.5 outline-none transition shadow-sm"/>
+                  <div className="md:col-span-2 flex flex-col space-y-1">
+                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Meal Timing</label>
+                    <select value={form.mealTiming || ""} onChange={(e) => setForm({ ...form, mealTiming: e.target.value })} className="border-slate-200 bg-white/50 focus:bg-white text-slate-800 focus:ring-2 focus:ring-indigo-500 rounded-lg p-2.5 outline-none transition shadow-sm">
+                      <option value="">No specific timing</option>
+                      <option>Fasting (Empty Stomach)</option>
+                      <option>Before Food</option>
+                      <option>With Food</option>
+                      <option>After Food</option>
+                    </select>
                   </div>
                 </div>
 
@@ -478,9 +488,9 @@ function Dashboard() {
                 <details className="text-sm text-slate-500 group cursor-pointer outline-none">
                   <summary className="font-semibold mb-2">{t.advancedDetails}</summary>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
-                    <div className="flex flex-col space-y-1">
-                      <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Site</label>
-                      <select value={form.injectionSite} onChange={(e) => setForm({...form, injectionSite: e.target.value})} className="border-slate-200 bg-white/50 focus:bg-white text-slate-800 focus:ring-2 focus:ring-indigo-500 rounded-lg p-2.5 outline-none transition shadow-sm">
+                    <div className="flex flex-col space-y-1 md:col-span-2">
+                      <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Injection Site</label>
+                      <select value={form.injectionSite} onChange={(e) => setForm({ ...form, injectionSite: e.target.value })} className="border-slate-200 bg-white/50 focus:bg-white text-slate-800 focus:ring-2 focus:ring-indigo-500 rounded-lg p-2.5 outline-none transition shadow-sm">
                         <option value="">None</option>
                         <option>Left Abdomen</option>
                         <option>Right Abdomen</option>
@@ -490,19 +500,8 @@ function Dashboard() {
                         <option>Right Arm</option>
                       </select>
                     </div>
-                    
-                    <div className="flex flex-col space-y-1">
-                      <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Meal Timing</label>
-                      <select value={form.mealTiming || ""} onChange={(e) => setForm({...form, mealTiming: e.target.value})} className="border-slate-200 bg-white/50 focus:bg-white text-slate-800 focus:ring-2 focus:ring-indigo-500 rounded-lg p-2.5 outline-none transition shadow-sm">
-                        <option value="">No specific timing</option>
-                        <option>Fasting (Empty Stomach)</option>
-                        <option>Before Food</option>
-                        <option>With Food</option>
-                        <option>After Food</option>
-                      </select>
-                    </div>
 
-                    {renderInput('add', 'dosesPerDay', 'Freq/Day', 'number', 'col-span-2')}
+                    {renderInput('add', 'dosesPerDay', 'Freq/Day', 'number', 'col-span-1 md:col-span-2')}
                   </div>
                 </details>
 
@@ -523,8 +522,8 @@ function Dashboard() {
       {/* Emergency Modal */}
       <AnimatePresence>
         {showEmergency && (
-          <motion.div initial={{opacity: 0}} animate={{opacity: 1}} exit={{opacity: 0}} className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <motion.div initial={{scale: 0.9, y: 20}} animate={{scale: 1, y: 0}} exit={{scale: 0.9, y: 20}} className="glass-dark p-8 rounded-3xl w-full max-w-md text-center text-white border-rose-500/30">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className="glass-dark p-8 rounded-3xl w-full max-w-md text-center text-white border-rose-500/30">
               <div className="w-16 h-16 bg-rose-500/20 text-rose-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-4">🚨</div>
               <h2 className="text-2xl font-black mb-4">{t.hypoTitle}</h2>
               <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-left mb-6">
@@ -550,8 +549,8 @@ function Dashboard() {
       {/* Reminder Modal */}
       <AnimatePresence>
         {activeReminder && (
-          <motion.div initial={{opacity: 0}} animate={{opacity: 1}} exit={{opacity: 0}} className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <motion.div initial={{scale: 0.9, y: 20}} animate={{scale: 1, y: 0}} exit={{scale: 0.9, y: 20}} className="glass p-8 rounded-3xl w-full max-w-md text-center shadow-2xl">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className="glass p-8 rounded-3xl w-full max-w-md text-center shadow-2xl">
               <div className={`w-20 h-20 mx-auto rounded-full flex items-center justify-center text-4xl mb-4 ${activeReminder.type === 'time' ? 'bg-indigo-100 text-indigo-500' : 'bg-orange-100 text-orange-500'}`}>
                 {activeReminder.type === "time" ? "⏰" : "⚠️"}
               </div>
@@ -561,7 +560,7 @@ function Dashboard() {
               <p className="text-slate-600 text-lg font-medium mb-6">
                 {activeReminder.type === "time" ? `${t.medTimeMsg} ${activeReminder.medicineName}.` : `${t.stockAlertMsg} ${activeReminder.medicineName}.`}
               </p>
-              
+
               {activeReminder.type === "stock" && (
                 <div className="mb-6 text-left">
                   <label className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2 block">{t.refillAmount}</label>
