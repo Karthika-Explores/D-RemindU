@@ -19,6 +19,14 @@ function UserProfile() {
       const res = await API.get("/user/profile");
       setUser(res.data);
       setFormData(res.data);
+      
+      const lsUserStr = localStorage.getItem("user");
+      if (lsUserStr) {
+        try {
+          const lsUser = JSON.parse(lsUserStr);
+          localStorage.setItem("user", JSON.stringify({ ...lsUser, ...res.data }));
+        } catch(e) {}
+      }
     } catch (error) {
       console.error("Profile fetch error:", error.response?.data || error.message);
     } finally {

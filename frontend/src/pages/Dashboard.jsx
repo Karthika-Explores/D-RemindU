@@ -624,7 +624,7 @@ function Dashboard() {
                     <p className="text-emerald-600 font-medium">None of your medications are low on stock.</p>
                   </div>
                 ) : (
-                  medications.filter(m => Number(m.totalTablets) <= Number(m.lowStockThreshold)).map(med => (
+                  medications.filter(m => Number(m.totalTablets) <= Number(m.lowStockThreshold)).sort((a, b) => Number(a.totalTablets) - Number(b.totalTablets)).map(med => (
                     <div key={med._id} className="border border-orange-200 bg-orange-50/50 rounded-2xl p-4 flex justify-between items-center sm:flex-row flex-col sm:items-center gap-4">
                       <div>
                         <h3 className="font-black text-slate-800 text-lg">{med.medicineName}</h3>
