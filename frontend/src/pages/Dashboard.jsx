@@ -38,6 +38,7 @@ function Dashboard() {
   const [stats, setStats] = useState({ taken: 0, missed: 0, adherence: 0 });
   const [snoozedMeds, setSnoozedMeds] = useState({});
   const [loggedToday, setLoggedToday] = useState({});
+  const [showLowStockModal, setShowLowStockModal] = useState(false);
   const navigate = useNavigate();
 
   const t = translations[language] || translations["en-US"];
@@ -45,11 +46,13 @@ function Dashboard() {
   const userStr = localStorage.getItem("user");
   let emergencyContact = "1234567890";
   let glucoseLevel = null;
+  let stockReminderTime = null;
   if (userStr) {
     try {
       const u = JSON.parse(userStr);
       if (u && u.emergencyContact) emergencyContact = u.emergencyContact;
       if (u && u.glucoseLevel) glucoseLevel = u.glucoseLevel;
+      if (u && u.stockReminderTime) stockReminderTime = u.stockReminderTime;
     } catch (e) { }
   }
 
@@ -117,10 +120,18 @@ function Dashboard() {
           }
         }
 
-        // 3x Daily Low Stock Reminder (9 AM, 2 PM, 7 PM)
+        // Check low stock
         if (Number(med.totalTablets) <= Number(med.lowStockThreshold)) {
-          const stockKey = med._id + "stock" + h;
-          if ((h === 9 || h === 14 || h === 19) && m === 0 && !triggeredCache[stockKey]) {
+          const stockKey = med._id + "stock" + h + m;
+          let shouldTrigger = false;
+          if (stockReminderTime) {
+            const [sh, sm] = stockReminderTime.split(":");
+            if (Number(sh) === h && Number(sm) === m) shouldTrigger = true;
+          } else {
+            if ((h === 9 || h === 14 || h === 19) && m === 0) shouldTrigger = true;
+          }
+
+          if (shouldTrigger && !triggeredCache[stockKey]) {
             triggeredCache[stockKey] = true;
             triggerReminder(med, "stock");
           }
@@ -334,6 +345,9 @@ function Dashboard() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
+            <button onClick={() => setShowLowStockModal(true)} className="glass bg-orange-100/80 hover:bg-orange-200 text-orange-700 border-orange-200 px-5 py-2 rounded-full font-bold transition shadow-sm flex items-center gap-2">
+              ⚠️ Low Stock
+            </button>
             <button onClick={() => navigate("/upload")} className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-600/30 px-5 py-2 rounded-full font-bold transition">
               {t.uploadBtn}
             </button>
@@ -582,6 +596,49 @@ function Dashboard() {
                   {t.laterBtn}
                 </button>
               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Low Stock Modal */}
+      <AnimatePresence>
+        {showLowStockModal && (
+          <motion.div initial={{opacity: 0}} animate={{opacity: 1}} exit={{opacity: 0}} className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <motion.div initial={{scale: 0.9, y: 20}} animate={{scale: 1, y: 0}} exit={{scale: 0.9, y: 20}} className="glass bg-white p-6 sm:p-8 rounded-[2.5rem] w-full max-w-2xl max-h-[90vh] overflow-y-auto text-left shadow-2xl relative border-t-8 border-t-orange-500">
+              <button onClick={() => setShowLowStockModal(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-600 transition bg-slate-100 hover:bg-slate-200 rounded-full w-8 h-8 flex items-center justify-center font-bold">
+                ✕
+              </button>
+
+              <div className="mb-6 pr-8">
+                <div className="w-12 h-12 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center text-2xl mb-3 shadow-inner">⚠️</div>
+                <h2 className="font-extrabold text-2xl text-slate-900">Low Stock Alerts</h2>
+                <p className="text-slate-500 font-medium mt-1">Review the medications that are currently running low on stock.</p>
+              </div>
+
+              <div className="space-y-4">
+                {medications.filter(m => Number(m.totalTablets) <= Number(m.lowStockThreshold)).length === 0 ? (
+                  <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-6 text-center">
+                    <span className="text-3xl block mb-2">🎉</span>
+                    <h3 className="font-bold text-emerald-800">All Good!</h3>
+                    <p className="text-emerald-600 font-medium">None of your medications are low on stock.</p>
+                  </div>
+                ) : (
+                  medications.filter(m => Number(m.totalTablets) <= Number(m.lowStockThreshold)).map(med => (
+                    <div key={med._id} className="border border-orange-200 bg-orange-50/50 rounded-2xl p-4 flex justify-between items-center sm:flex-row flex-col sm:items-center gap-4">
+                      <div>
+                        <h3 className="font-black text-slate-800 text-lg">{med.medicineName}</h3>
+                        <p className="text-sm text-slate-500 font-medium">Dosage: <span className="text-slate-700">{med.dosage}</span></p>
+                      </div>
+                      <div className="bg-white px-4 py-2 rounded-xl shadow-sm border border-orange-100 sm:w-auto w-full text-center">
+                        <p className="text-xs uppercase font-bold text-orange-400 mb-0.5">Remaining Stock</p>
+                        <p className="text-xl font-black text-rose-600">{med.totalTablets} <span className="text-sm font-semibold text-rose-400">tablets</span></p>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
             </motion.div>
           </motion.div>
         )}

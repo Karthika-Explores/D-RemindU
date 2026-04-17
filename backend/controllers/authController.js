@@ -41,6 +41,7 @@ const registerUser = async (req, res) => {
       name: user.name,
       email: user.email,
       emergencyContact: user.emergencyContact,
+      stockReminderTime: user.stockReminderTime,
       token: generateToken(user._id)
     });
   } catch (error) {
@@ -61,6 +62,7 @@ const loginUser = async (req, res) => {
         name: user.name,
         email: user.email,
         emergencyContact: user.emergencyContact,
+        stockReminderTime: user.stockReminderTime,
         token: generateToken(user._id)
       });
     } else {

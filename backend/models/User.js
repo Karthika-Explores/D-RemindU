@@ -8,7 +8,8 @@ const userSchema = new mongoose.Schema(
     age: { type: Number, required: true },
     weight: { type: Number, required: true },
     glucoseLevel: { type: Number, required: true },
-    emergencyContact: { type: String }
+    emergencyContact: { type: String },
+    stockReminderTime: { type: String }
   },
   { timestamps: true }
 );

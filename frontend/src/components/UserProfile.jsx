@@ -38,7 +38,8 @@ function UserProfile() {
         age: formData.age,
         weight: formData.weight,
         glucoseLevel: formData.glucoseLevel,
-        emergencyContact: formData.emergencyContact
+        emergencyContact: formData.emergencyContact,
+        stockReminderTime: formData.stockReminderTime
       });
       setUser(res.data);
       setEditing(false);
@@ -115,16 +116,31 @@ function UserProfile() {
               <p className="text-lg text-slate-500 font-medium pt-1">{user.email || "No email provided"}</p>
               
               {editing ? (
-                <div className="mt-4 mb-2 max-w-sm">
-                  <label className="text-xs font-bold text-slate-400 uppercase flex items-center gap-1"><span>🚑</span> Emergency Contact</label>
-                  <input type="text" value={formData.emergencyContact || ""} onChange={(e) => setFormData({...formData, emergencyContact: e.target.value})} className="w-full text-lg font-bold text-rose-700 bg-white/50 border-2 border-rose-200 rounded-lg p-2 focus:ring-2 focus:ring-rose-500 outline-none mt-1" placeholder="e.g. +1 234 567 8900" />
+                <div className="flex flex-col sm:flex-row gap-4 mt-4 mb-2 max-w-lg">
+                  <div className="flex-1">
+                    <label className="text-xs font-bold text-slate-400 uppercase flex items-center gap-1"><span>🚑</span> Emergency Contact</label>
+                    <input type="text" value={formData.emergencyContact || ""} onChange={(e) => setFormData({...formData, emergencyContact: e.target.value})} className="w-full text-lg font-bold text-rose-700 bg-white/50 border-2 border-rose-200 rounded-lg p-2 focus:ring-2 focus:ring-rose-500 outline-none mt-1" placeholder="e.g. +1 234 567 8900" />
+                  </div>
+                  <div className="flex-1">
+                    <label className="text-xs font-bold text-slate-400 uppercase flex items-center gap-1"><span>⏰</span> Stock Alert Time</label>
+                    <input type="time" value={formData.stockReminderTime || ""} onChange={(e) => setFormData({...formData, stockReminderTime: e.target.value})} className="w-full text-lg font-bold text-indigo-700 bg-white/50 border-2 border-indigo-200 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 outline-none mt-1" />
+                  </div>
                 </div>
               ) : (
-                <div className="mt-4 inline-flex items-center gap-2 bg-rose-50 text-rose-600 px-4 py-2 rounded-xl border border-rose-100 shadow-sm">
-                  <span className="text-lg">🚑</span>
-                  <div>
-                    <p className="text-[10px] uppercase font-black tracking-wider text-rose-400 mb-0.5">Emergency Contact</p>
-                    <p className="font-bold leading-none">{user.emergencyContact || "No contact set"}</p>
+                <div className="flex flex-wrap gap-3 mt-4">
+                  <div className="inline-flex items-center gap-2 bg-rose-50 text-rose-600 px-4 py-2 rounded-xl border border-rose-100 shadow-sm">
+                    <span className="text-lg">🚑</span>
+                    <div>
+                      <p className="text-[10px] uppercase font-black tracking-wider text-rose-400 mb-0.5">Emergency Contact</p>
+                      <p className="font-bold leading-none">{user.emergencyContact || "No contact set"}</p>
+                    </div>
+                  </div>
+                  <div className="inline-flex items-center gap-2 bg-indigo-50 text-indigo-600 px-4 py-2 rounded-xl border border-indigo-100 shadow-sm">
+                    <span className="text-lg">⏰</span>
+                    <div>
+                      <p className="text-[10px] uppercase font-black tracking-wider text-indigo-400 mb-0.5">Stock Alerts</p>
+                      <p className="font-bold leading-none">{user.stockReminderTime || "Default (3x a day)"}</p>
+                    </div>
                   </div>
                 </div>
               )}
