@@ -36,7 +36,24 @@ export const translations = {
     stockAlertMsg: "Update inventory for",
     refillAmount: "Refill Amount (Tablets Added)",
     confirmBtn: "Confirm",
-    laterBtn: "Later"
+    laterBtn: "Later",
+    // Auth Labels
+    loginTitle: "Welcome Back",
+    loginSubtitle: "Please enter your details to sign in.",
+    emailLabel: "Email",
+    passwordLabel: "Password",
+    signInBtn: "Sign In",
+    noAccountText: "Don't have an account? ",
+    createOneText: "Create one",
+    registerTitle: "Create Account",
+    registerSubtitle: "Join D-RemindU for smarter health tracking.",
+    nameLabel: "Full Name",
+    ageLabel: "Age",
+    weightLabel: "Weight (kg)",
+    glucoseLabel: "Glucose Level (mg/dL)",
+    signUpBtn: "Sign Up",
+    hasAccountText: "Already have an account? ",
+    logInText: "Log in"
   },
   "hi-IN": {
     dashboardTitle1: "आपका",
@@ -75,7 +92,24 @@ export const translations = {
     stockAlertMsg: "के लिए इन्वेंट्री अपडेट करें:",
     refillAmount: "रीफिल मात्रा (गोलियाँ जोड़ी गईं)",
     confirmBtn: "पुष्टि करें",
-    laterBtn: "बाद में"
+    laterBtn: "बाद में",
+    // Auth Labels
+    loginTitle: "वापसी पर स्वागत है",
+    loginSubtitle: "साइन इन करने के लिए कृपया अपना विवरण दर्ज करें।",
+    emailLabel: "ईमेल",
+    passwordLabel: "पासवर्ड",
+    signInBtn: "साइन इन करें",
+    noAccountText: "खाता नहीं है? ",
+    createOneText: "खाता बनाएं",
+    registerTitle: "खाता बनाएं",
+    registerSubtitle: "बेहतर स्वास्थ्य ट्रैकिंग के लिए D-RemindU से जुड़ें।",
+    nameLabel: "पूरा नाम",
+    ageLabel: "आयु",
+    weightLabel: "वजन (किलो)",
+    glucoseLabel: "ग्लूकोज स्तर (mg/dL)",
+    signUpBtn: "साइन अप करें",
+    hasAccountText: "क्या आपके पास पहले से खाता है? ",
+    logInText: "लॉग इन करें"
   },
   "ta-IN": {
     dashboardTitle1: "உங்கள்",
@@ -114,7 +148,24 @@ export const translations = {
     stockAlertMsg: "இருப்பை புதுப்பிக்கவும்:",
     refillAmount: "நிரப்பும் அளவு (மாத்திரைகள்)",
     confirmBtn: "உறுதிப்படுத்து",
-    laterBtn: "பிறகு"
+    laterBtn: "பிறகு",
+    // Auth Labels
+    loginTitle: "மீண்டும் வருக",
+    loginSubtitle: "உள்நுழைய உங்கள் விவரங்களை உள்ளிடவும்.",
+    emailLabel: "மின்னஞ்சல்",
+    passwordLabel: "கடவுச்சொல்",
+    signInBtn: "உள்நுழைக",
+    noAccountText: "கணக்கு இல்லையா? ",
+    createOneText: "புதிய கணக்கை உருவாக்கு",
+    registerTitle: "கணக்கை உருவாக்கு",
+    registerSubtitle: "சிறந்த சுகாதார கண்காணிப்புக்கு D-RemindU இல் சேரவும்.",
+    nameLabel: "முழு பெயர்",
+    ageLabel: "வயது",
+    weightLabel: "எடை (கிலோ)",
+    glucoseLabel: "குளுக்கோஸ் அளவு (mg/dL)",
+    signUpBtn: "பதிவு செய்க",
+    hasAccountText: "ஏற்கனவே கணக்கு உள்ளதா? ",
+    logInText: "உள்நுழைக"
   },
   "kn-IN": {
     dashboardTitle1: "ನಿಮ್ಮ",
@@ -153,6 +204,23 @@ export const translations = {
     stockAlertMsg: "ಸ್ಟಾಕ್ ನವೀಕರಿಸಿ:",
     refillAmount: "ರೀಫಿಲ್ ಮೊತ್ತ (ಮಾತ್ರೆಗಳು)",
     confirmBtn: "ಖಚಿತಪಡಿಸಿ",
-    laterBtn: "ನಂತರ"
+    laterBtn: "ನಂತರ",
+    // Auth Labels
+    loginTitle: "ಮತ್ತೆ ಸ್ವಾಗತ",
+    loginSubtitle: "ಸೈನ್ ಇನ್ ಮಾಡಲು ದಯವಿಟ್ಟು ನಿಮ್ಮ ವಿವರಗಳನ್ನು ನಮೂದಿಸಿ.",
+    emailLabel: "ಇಮೇಲ್",
+    passwordLabel: "ಪಾಸ್‌ವರ್ಡ್",
+    signInBtn: "ಸೈನ್ ಇನ್ ಮಾಡಿ",
+    noAccountText: "ಖಾತೆ ಇಲ್ಲವೇ? ",
+    createOneText: "ಒಂದನ್ನು ರಚಿಸಿ",
+    registerTitle: "ಖಾತೆ ರಚಿಸಿ",
+    registerSubtitle: "ಸ್ಮಾರ್ಟ್ ಆರೋಗ್ಯ ಟ್ರ್ಯಾಕಿಂಗ್‌ಗಾಗಿ D-RemindU ಸೇರಿ.",
+    nameLabel: "ಪೂರ್ಣ ಹೆಸರು",
+    ageLabel: "ವಯಸ್ಸು",
+    weightLabel: "ತೂಕ (ಕೆಜಿ)",
+    glucoseLabel: "ಗ್ಲೂಕೋಸ್ ಮಟ್ಟ (mg/dL)",
+    signUpBtn: "ಸೈನ್ ಅಪ್ ಮಾಡಿ",
+    hasAccountText: "ಈಗಾಗಲೇ ಖಾತೆ ಹೊಂದಿದ್ದೀರಾ? ",
+    logInText: "ಲಾಗಿನ್ ಮಾಡಿ"
   }
 };

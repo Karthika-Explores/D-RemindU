@@ -399,7 +399,7 @@ function Dashboard() {
           </div>
 
           {/* RIGHT COLUMN: Form & Usage Chart */}
-          <div className="space-y-6">
+          <div className="space-y-6 w-full max-w-lg mx-auto lg:max-w-none">
             
             {/* Add Medication Form */}
             <div className="glass p-6 rounded-3xl border-t-4 border-t-indigo-500">
