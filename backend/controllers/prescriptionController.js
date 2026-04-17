@@ -22,6 +22,7 @@ exports.uploadPrescription = async (req, res) => {
         url: result.secure_url,
         language: "eng",
         isOverlayRequired: false,
+        OCREngine: "2",
       }).toString(),
       {
         headers: { "Content-Type": "application/x-www-form-urlencoded" },

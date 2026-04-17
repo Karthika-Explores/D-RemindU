@@ -19,6 +19,10 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
+    if (age && Number(age) > 150) {
+      return res.status(400).json({ message: "Age cannot exceed 150 years" });
+    }
+
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 

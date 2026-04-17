@@ -32,10 +32,16 @@ function Register() {
           {["name","email","password","age","weight","glucoseLevel"].map(field => (
             <input
               key={field}
-              type={field === "password" ? "password" : "text"}
+              type={field === "password" ? "password" : field === "age" || field === "weight" || field === "glucoseLevel" ? "number" : "text"}
+              max={field === "age" ? "150" : undefined}
               placeholder={field}
               className="p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 outline-none"
-              onChange={(e)=>setForm({...form,[field]:e.target.value})}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (field === "age" && Number(val) > 150) return;
+                setForm({...form,[field]:val});
+              }}
+              value={form[field] || ""}
             />
           ))}
 

@@ -125,7 +125,11 @@ function UserProfile() {
               <p className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-1">Age</p>
               {editing ? (
                 <div className="flex items-center gap-1">
-                  <input type="number" min="0" value={formData.age || ""} onChange={(e) => setFormData({...formData, age: e.target.value})} className="w-20 text-center text-2xl font-black text-slate-700 bg-white border-2 border-indigo-200 rounded-lg p-1 outline-none" />
+                  <input type="number" min="0" max="150" value={formData.age || ""} onChange={(e) => {
+                    const val = e.target.value;
+                    if (Number(val) > 150) return;
+                    setFormData({...formData, age: val});
+                  }} className="w-20 text-center text-2xl font-black text-slate-700 bg-white border-2 border-indigo-200 rounded-lg p-1 outline-none" />
                   <span className="text-slate-500 font-bold">yrs</span>
                 </div>
               ) : (

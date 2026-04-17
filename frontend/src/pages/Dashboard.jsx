@@ -122,9 +122,15 @@ function Dashboard() {
 
     if (type === "time") {
       speakReminder(med.medicineName, language, "time");
+      if (Notification.permission === "granted") {
+        new Notification(t.medTimeAlert, { body: `${t.medTimeMsg} ${med.medicineName}`, icon: '/vite.svg' });
+      }
       setSnoozedMeds(prev => ({ ...prev, [med._id]: Date.now() + 10 * 60 * 1000 }));
     } else if (type === "stock") {
       speakReminder(med.medicineName, language, "stock");
+      if (Notification.permission === "granted") {
+        new Notification(t.stockAlertTitle, { body: `${t.stockAlertMsg} ${med.medicineName}`, icon: '/vite.svg' });
+      }
     }
 
     const timer = setTimeout(() => setActiveReminder(null), 5 * 60 * 1000);
@@ -196,6 +202,10 @@ function Dashboard() {
   };
 
   const markTaken = async (med) => {
+    if (Number(med.totalTablets) <= 0) {
+      alert("No stock left! Please update inventory before logging.");
+      return;
+    }
     clearTimeout(repeatTimer);
     setActiveReminder(null);
     setSnoozedMeds(prev => { const copy = {...prev}; delete copy[med._id]; return copy; });
@@ -228,7 +238,12 @@ function Dashboard() {
     setEditForm(med);
   };
 
-  const markMissed = async (id) => {
+  const markMissed = async (id, med) => {
+    // Requires med object to check stock
+    if (med && Number(med.totalTablets) <= 0) {
+      alert("No stock left! Please update inventory before logging.");
+      return;
+    }
     clearTimeout(repeatTimer);
     setActiveReminder(null);
     setSnoozedMeds(prev => { const copy = {...prev}; delete copy[id]; return copy; });
@@ -305,7 +320,7 @@ function Dashboard() {
           <div className="col-span-2 space-y-8">
             
             {/* Stats Cards */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <motion.div initial={{y: 20, opacity: 0}} animate={{y: 0, opacity: 1}} className="glass p-6 rounded-2xl relative overflow-hidden">
                 <div className="absolute -right-4 -top-4 w-24 h-24 bg-green-500/10 rounded-full blur-xl"></div>
                 <h3 className="text-slate-500 font-bold uppercase text-xs tracking-wider">{t.takenLabel}</h3>
@@ -371,7 +386,7 @@ function Dashboard() {
                           <p className="text-sm text-slate-500 mb-6">{med.instructions}</p>
                           <div className="flex gap-2">
                             <button onClick={() => markTaken(med)} className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-2 rounded-xl text-sm font-bold shadow-sm transition">{t.takenLabel}</button>
-                            <button onClick={() => markMissed(med._id)} className="flex-1 glass bg-white hover:bg-rose-50 text-rose-600 px-3 py-2 rounded-xl text-sm font-bold transition border-rose-200">{t.skipBtn}</button>
+                            <button onClick={() => markMissed(med._id, med)} className="flex-1 glass bg-white hover:bg-rose-50 text-rose-600 px-3 py-2 rounded-xl text-sm font-bold transition border-rose-200">{t.skipBtn}</button>
                             <button onClick={() => startEdit(med)} className="w-[48px] glass bg-white hover:bg-slate-100 text-slate-600 flex items-center justify-center rounded-xl transition border-slate-200 text-xl">⚙️</button>
                           </div>
                         </>
@@ -400,16 +415,16 @@ function Dashboard() {
               </div>
 
               <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-3">
-                  {renderInput('add', 'medicineName', 'Name', 'text', 'col-span-2')}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {renderInput('add', 'medicineName', 'Name', 'text', 'md:col-span-2')}
                   {renderInput('add', 'dosage', 'Dosage')}
                   {renderInput('add', 'reminderTime', 'Time', 'time')}
                 </div>
                 
-                <div className="grid grid-cols-2 gap-3 pt-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
                   {renderInput('add', 'totalTablets', 'Stock', 'number')}
                   {renderInput('add', 'lowStockThreshold', 'Alert At', 'number')}
-                  <div className="col-span-2 space-y-1">
+                  <div className="md:col-span-2 space-y-1">
                     <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Instructions</label>
                     <input type="text" value={form.instructions || ""} onChange={(e) => setForm({...form, instructions: e.target.value})} placeholder="" className="w-full border-slate-200 bg-white/50 focus:bg-white text-slate-800 focus:ring-2 focus:ring-indigo-500 rounded-lg p-2.5 outline-none transition shadow-sm"/>
                   </div>
@@ -418,7 +433,7 @@ function Dashboard() {
                 {/* Optional Overrides */}
                 <details className="text-sm text-slate-500 group cursor-pointer outline-none">
                   <summary className="font-semibold mb-2">{t.advancedDetails}</summary>
-                  <div className="grid grid-cols-2 gap-3 mt-2">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
                     <div className="flex flex-col space-y-1">
                       <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Site</label>
                       <select value={form.injectionSite} onChange={(e) => setForm({...form, injectionSite: e.target.value})} className="border-slate-200 bg-white/50 focus:bg-white text-slate-800 focus:ring-2 focus:ring-indigo-500 rounded-lg p-2.5 outline-none transition shadow-sm">

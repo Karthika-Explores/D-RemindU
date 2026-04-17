@@ -13,7 +13,10 @@ exports.updateProfile = async (req, res) => {
     const user = req.user;
     
     if (req.body.name) user.name = req.body.name;
-    if (req.body.age !== undefined) user.age = Number(req.body.age);
+    if (req.body.age !== undefined) {
+      if (Number(req.body.age) > 150) return res.status(400).json({ message: "Age cannot exceed 150 years" });
+      user.age = Number(req.body.age);
+    }
     if (req.body.weight !== undefined) user.weight = Number(req.body.weight);
     if (req.body.glucoseLevel !== undefined) user.glucoseLevel = Number(req.body.glucoseLevel);
 
