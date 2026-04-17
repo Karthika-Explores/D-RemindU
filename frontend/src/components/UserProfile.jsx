@@ -37,10 +37,19 @@ function UserProfile() {
         name: formData.name,
         age: formData.age,
         weight: formData.weight,
-        glucoseLevel: formData.glucoseLevel
+        glucoseLevel: formData.glucoseLevel,
+        emergencyContact: formData.emergencyContact
       });
       setUser(res.data);
       setEditing(false);
+      
+      const lsUserStr = localStorage.getItem("user");
+      if (lsUserStr) {
+        try {
+          const lsUser = JSON.parse(lsUserStr);
+          localStorage.setItem("user", JSON.stringify({ ...lsUser, ...res.data }));
+        } catch(e) {}
+      }
     } catch (error) {
       console.error("Profile update error:", error);
       alert("Failed to update profile");
@@ -105,8 +114,23 @@ function UserProfile() {
               
               <p className="text-lg text-slate-500 font-medium pt-1">{user.email || "No email provided"}</p>
               
+              {editing ? (
+                <div className="mt-4 mb-2 max-w-sm">
+                  <label className="text-xs font-bold text-slate-400 uppercase flex items-center gap-1"><span>🚑</span> Emergency Contact</label>
+                  <input type="text" value={formData.emergencyContact || ""} onChange={(e) => setFormData({...formData, emergencyContact: e.target.value})} className="w-full text-lg font-bold text-rose-700 bg-white/50 border-2 border-rose-200 rounded-lg p-2 focus:ring-2 focus:ring-rose-500 outline-none mt-1" placeholder="e.g. +1 234 567 8900" />
+                </div>
+              ) : (
+                <div className="mt-4 inline-flex items-center gap-2 bg-rose-50 text-rose-600 px-4 py-2 rounded-xl border border-rose-100 shadow-sm">
+                  <span className="text-lg">🚑</span>
+                  <div>
+                    <p className="text-[10px] uppercase font-black tracking-wider text-rose-400 mb-0.5">Emergency Contact</p>
+                    <p className="font-bold leading-none">{user.emergencyContact || "No contact set"}</p>
+                  </div>
+                </div>
+              )}
+
               {!editing && (
-                <button onClick={handleLogout} className="mt-4 bg-rose-100 hover:bg-rose-200 text-rose-600 font-bold py-2 px-6 rounded-full transition text-sm">
+                <button onClick={handleLogout} className="mt-6 block bg-rose-100 hover:bg-rose-200 text-rose-600 font-bold py-2 px-6 rounded-full transition text-sm">
                   Log Out
                 </button>
               )}

@@ -4,7 +4,8 @@ exports.getProfile = async (req, res) => {
     email: req.user.email,
     age: req.user.age,
     weight: req.user.weight,
-    glucoseLevel: req.user.glucoseLevel
+    glucoseLevel: req.user.glucoseLevel,
+    emergencyContact: req.user.emergencyContact
   });
 };
 
@@ -19,6 +20,7 @@ exports.updateProfile = async (req, res) => {
     }
     if (req.body.weight !== undefined) user.weight = Number(req.body.weight);
     if (req.body.glucoseLevel !== undefined) user.glucoseLevel = Number(req.body.glucoseLevel);
+    if (req.body.emergencyContact !== undefined) user.emergencyContact = req.body.emergencyContact;
 
     const updatedUser = await user.save();
 
@@ -27,7 +29,8 @@ exports.updateProfile = async (req, res) => {
       email: updatedUser.email,
       age: updatedUser.age,
       weight: updatedUser.weight,
-      glucoseLevel: updatedUser.glucoseLevel
+      glucoseLevel: updatedUser.glucoseLevel,
+      emergencyContact: updatedUser.emergencyContact
     });
   } catch (error) {
     res.status(500).json({ message: "Error updating profile", error: error.message });
