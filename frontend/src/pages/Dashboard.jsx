@@ -106,13 +106,17 @@ function Dashboard() {
 
       medications.forEach((med) => {
         if (med.reminderTime) {
-          const [hh, mm] = med.reminderTime.split(":");
-          const timeKey = med._id + "time" + h + m;
-          // Exact time trigger
-          if (Number(hh) === h && Number(mm) === m && !triggeredCache[timeKey]) {
-            triggeredCache[timeKey] = true;
-            triggerReminder(med, "time");
-          }
+          const times = med.reminderTime.split(",").map(t => t.trim());
+          times.forEach(timeStr => {
+            if (!timeStr) return;
+            const [hh, mm] = timeStr.split(":");
+            const timeKey = med._id + "time" + timeStr + h + m;
+            // Exact time trigger
+            if (Number(hh) === h && Number(mm) === m && !triggeredCache[timeKey]) {
+              triggeredCache[timeKey] = true;
+              triggerReminder(med, "time");
+            }
+          });
           // 10-Minute Snooze Trigger
           if (snoozedMeds[med._id] && now.getTime() >= snoozedMeds[med._id]) {
             setSnoozedMeds(prev => { const copy = { ...prev }; delete copy[med._id]; return copy; });
@@ -176,10 +180,22 @@ function Dashboard() {
     try {
       const res = await API.get("/logs");
       const logs = res.data || [];
-      const taken = logs.filter(l => l.status === "Taken").length;
-      const missed = logs.filter(l => l.status === "Missed").length;
+      // Calculate Stats
+      const taken = logs.filter(l => l.status === "Taken" || l.status === "taken").length;
+      const missed = logs.filter(l => l.status === "Missed" || l.status === "missed").length;
       const adherence = (taken + missed === 0) ? 0 : Math.round((taken / (taken + missed)) * 100);
       setStats({ taken, missed, adherence });
+
+      // Hydrate loggedToday to prevent button re-render on refresh
+      const today = new Date().toDateString();
+      const currentAuthLogs = {};
+      logs.forEach(l => {
+        const logDate = l.date || l.createdAt;
+        if (logDate && new Date(logDate).toDateString() === today) {
+          currentAuthLogs[l.medicationId] = true;
+        }
+      });
+      setLoggedToday(currentAuthLogs);
     } catch (err) {
       console.error("Stats error:", err);
     }
@@ -243,7 +259,7 @@ function Dashboard() {
     try {
       await API.post("/logs/taken", { medicationId: med._id });
       setTakenQty(1);
-      setLoggedToday(prev => ({ ...prev, [med._id]: true }));
+      setLoggedToday(prev => ({ ...prev, [med._id]: (prev[med._id] || 0) + 1 }));
       fetchMeds();
       fetchStats();
     } catch (error) { console.error("Mark taken failed:", error); }
@@ -284,7 +300,7 @@ function Dashboard() {
     setActiveReminder(null);
     setSnoozedMeds(prev => { const copy = { ...prev }; delete copy[id]; return copy; });
     await API.post("/logs/missed", { medicationId: id });
-    setLoggedToday(prev => ({ ...prev, [id]: true }));
+    setLoggedToday(prev => ({ ...prev, [id]: (prev[id] || 0) + 1 }));
     fetchMeds();
     fetchStats();
   };
@@ -308,8 +324,41 @@ function Dashboard() {
           type={type}
           value={val}
           onChange={onChange}
-          className="border-slate-200 bg-white/50 focus:bg-white text-slate-800 focus:ring-2 focus:ring-indigo-500 rounded-lg p-2.5 outline-none transition shadow-sm"
+          className="border-slate-200 bg-white/50 focus:bg-white text-slate-800 focus:ring-2 focus:ring-indigo-500 rounded-lg p-2.5 outline-none transition shadow-sm w-full"
         />
+      </div>
+    );
+  };
+
+  const renderTimeInputs = (stateMode) => {
+    const isEdit = stateMode === 'edit';
+    const formState = isEdit ? editForm : form;
+    const setFormState = isEdit ? setEditForm : setForm;
+    let doses = Number(formState.dosesPerDay) || 1;
+    if (doses < 1) doses = 1;
+    if (doses > 6) doses = 6;
+    
+    const times = (formState.reminderTime || "").split(",").map(s => s.trim());
+    
+    return (
+      <div className="flex flex-col space-y-1 col-span-2 sm:col-span-1 md:col-span-2">
+        <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Reminder Times ({doses} Doses)</label>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          {Array.from({ length: doses }).map((_, i) => (
+             <input 
+               key={i}
+               type="time" 
+               value={times[i] || ""} 
+               onChange={(e) => {
+                 const newTimes = [...times];
+                 newTimes[i] = e.target.value;
+                 setFormState({...formState, reminderTime: newTimes.join(",")});
+               }}
+               className="border-slate-200 bg-white/50 focus:bg-white text-slate-800 focus:ring-2 focus:ring-indigo-500 rounded-lg p-2 outline-none transition shadow-sm w-full text-sm"
+               required
+             />
+          ))}
+        </div>
       </div>
     );
   };
@@ -404,11 +453,12 @@ function Dashboard() {
                       {editingId === med._id ? (
                         <div className="space-y-4">
                           <h4 className="font-bold text-slate-800">{t.editMedsTitle}</h4>
-                          <div className="grid grid-cols-2 gap-3">
-                            {renderInput('edit', 'medicineName', 'Name')}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {renderInput('edit', 'medicineName', 'Name', 'text', 'sm:col-span-2')}
                             {renderInput('edit', 'dosage', 'Dosage')}
-                            {renderInput('edit', 'reminderTime', 'Time', 'time')}
-                            {renderInput('edit', 'totalTablets', 'Stock', 'number')}
+                            {renderInput('edit', 'dosesPerDay', 'Freq/Day', 'number')}
+                            {renderTimeInputs('edit')}
+                            {renderInput('edit', 'totalTablets', 'Stock', 'number', 'sm:col-span-2')}
                           </div>
                           <div className="flex gap-2 pt-2">
                             <button onClick={handleUpdate} className="flex-1 bg-slate-900 text-white rounded-lg py-2 font-semibold hover:bg-slate-800 transition">{t.saveBtn}</button>
@@ -423,7 +473,7 @@ function Dashboard() {
                               <p className="text-indigo-600 font-semibold">
                                 {med.dosage}{/^\d+(\.\d+)?$/.test(String(med.dosage).trim()) ? ' mg' : ''}
                                 {med.tabletsPerDose ? ` (${med.tabletsPerDose} ${med.tabletsPerDose == 1 ? 'tablet' : 'tablets'})` : ''}
-                                <span className="text-slate-400 font-normal"> at {med.reminderTime}</span>
+                                <span className="text-slate-400 font-normal"> at {med.reminderTime?.split(",").join(", ")}</span>
                               </p>
                             </div>
                             <div className="text-right">
@@ -436,8 +486,20 @@ function Dashboard() {
                           {med.injectionSite && <p className="text-sm font-bold text-blue-600 mb-1">💉 {t.siteText} {med.injectionSite}</p>}
                           <p className="text-sm text-slate-500 mb-6">{med.instructions}</p>
                           <div className="flex gap-2">
-                            <button onClick={() => markTaken(med)} disabled={loggedToday[med._id]} className={`flex-1 px-3 py-2 rounded-xl text-sm font-bold shadow-sm transition ${loggedToday[med._id] ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-emerald-500 hover:bg-emerald-600 text-white'}`}>{loggedToday[med._id] ? 'Logged' : t.takenLabel}</button>
-                            <button onClick={() => markMissed(med._id, med)} disabled={loggedToday[med._id]} className={`flex-1 glass px-3 py-2 rounded-xl text-sm font-bold transition border-slate-200 ${loggedToday[med._id] ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-white hover:bg-rose-50 text-rose-600 border-rose-200'}`}>{t.skipBtn}</button>
+                            {(() => {
+                               const doses = Number(med.dosesPerDay) || 1;
+                               const takenCount = loggedToday[med._id] || 0;
+                               const isDone = takenCount >= doses;
+                               const btnText = isDone ? 'Logged' : (takenCount > 0 ? `Take (${takenCount}/${doses} done)` : t.takenLabel);
+                               const skipText = isDone ? 'Skipped' : (takenCount > 0 ? `Skip (${takenCount}/${doses} done)` : t.skipBtn);
+                               
+                               return (
+                                 <>
+                                   <button onClick={() => markTaken(med)} disabled={isDone} className={`flex-1 px-3 py-2 rounded-xl text-sm font-bold shadow-sm transition ${isDone ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-emerald-500 hover:bg-emerald-600 text-white'}`}>{btnText}</button>
+                                   <button onClick={() => markMissed(med._id, med)} disabled={isDone} className={`flex-1 glass px-3 py-2 rounded-xl text-sm font-bold transition border-slate-200 ${isDone ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-white hover:bg-rose-50 text-rose-600 border-rose-200'}`}>{skipText}</button>
+                                 </>
+                               )
+                            })()}
                             <button onClick={() => startEdit(med)} className="w-[48px] glass bg-white hover:bg-slate-100 text-slate-600 flex items-center justify-center rounded-xl transition border-slate-200 text-xl">⚙️</button>
                           </div>
                         </>
@@ -486,7 +548,8 @@ function Dashboard() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {renderInput('add', 'medicineName', 'Name', 'text', 'md:col-span-2')}
                   {renderInput('add', 'dosage', 'Dosage')}
-                  {renderInput('add', 'reminderTime', 'Time', 'time')}
+                  {renderInput('add', 'dosesPerDay', 'Freq/Day', 'number')}
+                  {renderTimeInputs('add')}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
@@ -520,8 +583,6 @@ function Dashboard() {
                         <option>Right Arm</option>
                       </select>
                     </div>
-
-                    {renderInput('add', 'dosesPerDay', 'Freq/Day', 'number', 'col-span-1 md:col-span-2')}
                   </div>
                 </details>
 
