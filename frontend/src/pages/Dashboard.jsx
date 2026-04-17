@@ -44,10 +44,12 @@ function Dashboard() {
 
   const userStr = localStorage.getItem("user");
   let emergencyContact = "1234567890";
+  let glucoseLevel = null;
   if (userStr) {
     try {
       const u = JSON.parse(userStr);
       if (u && u.emergencyContact) emergencyContact = u.emergencyContact;
+      if (u && u.glucoseLevel) glucoseLevel = u.glucoseLevel;
     } catch (e) { }
   }
 
@@ -347,7 +349,7 @@ function Dashboard() {
           <div className="col-span-2 space-y-8">
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
               <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="glass p-6 rounded-2xl relative overflow-hidden">
                 <div className="absolute -right-4 -top-4 w-24 h-24 bg-green-500/10 rounded-full blur-xl"></div>
                 <h3 className="text-slate-500 font-bold uppercase text-xs tracking-wider">{t.takenLabel}</h3>
@@ -361,6 +363,10 @@ function Dashboard() {
               <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }} className="glass p-6 rounded-2xl relative overflow-hidden bg-gradient-to-br from-indigo-500 to-blue-600 border-none shadow-lg shadow-indigo-500/20">
                 <h3 className="text-white/80 font-bold uppercase text-xs tracking-wider">{t.adherenceLabel}</h3>
                 <p className="text-4xl font-black text-white mt-2">{stats.adherence}%</p>
+              </motion.div>
+              <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }} className="glass p-6 rounded-2xl relative overflow-hidden bg-gradient-to-br from-cyan-500 to-teal-500 border-none shadow-lg shadow-cyan-500/20">
+                <h3 className="text-white/80 font-bold uppercase text-xs tracking-wider">Glucose Level</h3>
+                <p className="text-4xl font-black text-white mt-2">{glucoseLevel ? glucoseLevel : "--"}</p>
               </motion.div>
             </div>
 
