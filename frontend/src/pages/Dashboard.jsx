@@ -244,6 +244,18 @@ function Dashboard() {
     }
   };
 
+  const handleDelete = async (id) => {
+    if (!window.confirm(t.deleteConfirm || "Are you sure you want to delete this medication?")) return;
+    try {
+      await API.delete(`/medications/${id}`);
+      setEditingId(null);
+      fetchMeds();
+      fetchStats();
+    } catch (error) {
+      console.error("Delete failed:", error);
+    }
+  };
+
   const markTaken = async (med) => {
     if (loggedToday[med._id]) {
       alert("You have already logged this medication session!");
@@ -462,6 +474,7 @@ function Dashboard() {
                           </div>
                           <div className="flex gap-2 pt-2">
                             <button onClick={handleUpdate} className="flex-1 bg-slate-900 text-white rounded-lg py-2 font-semibold hover:bg-slate-800 transition">{t.saveBtn}</button>
+                            <button onClick={() => handleDelete(med._id)} className="flex-1 bg-rose-600 text-white rounded-lg py-2 font-semibold hover:bg-rose-700 transition">Delete</button>
                             <button onClick={() => setEditingId(null)} className="flex-1 bg-slate-200 text-slate-700 rounded-lg py-2 font-semibold hover:bg-slate-300 transition">{t.cancelBtn}</button>
                           </div>
                         </div>
