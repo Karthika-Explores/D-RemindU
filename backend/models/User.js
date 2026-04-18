@@ -9,7 +9,8 @@ const userSchema = new mongoose.Schema(
     weight: { type: Number, required: true },
     glucoseLevel: { type: Number, required: true },
     emergencyContact: { type: String },
-    stockReminderTime: { type: String }
+    stockReminderTime: { type: String },
+    pushSubscriptions: [{ type: Object }]
   },
   { timestamps: true }
 );

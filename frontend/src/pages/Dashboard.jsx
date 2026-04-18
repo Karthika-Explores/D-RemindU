@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import API from "../services/api";
 import { speakReminder } from "../utils/voice";
 import { translations } from "../utils/translations";
+import { subscribeToPushNotifications } from "../services/pushService";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import UsageChart from "../components/UsageChart";
@@ -73,6 +74,9 @@ function Dashboard() {
     }
     fetchMeds();
     fetchStats();
+    
+    // Subscribe to Web Push Notifications on mount
+    subscribeToPushNotifications();
   }, []);
 
   const handleNextInQueue = () => {
@@ -192,7 +196,7 @@ function Dashboard() {
       logs.forEach(l => {
         const logDate = l.date || l.createdAt;
         if (logDate && new Date(logDate).toDateString() === today) {
-          currentAuthLogs[l.medicationId] = true;
+          currentAuthLogs[l.medicationId] = (currentAuthLogs[l.medicationId] || 0) + 1;
         }
       });
       setLoggedToday(currentAuthLogs);
@@ -525,11 +529,13 @@ function Dashboard() {
           </div>
 
           {/* RIGHT COLUMN: Usage Chart */}
-          <div className="space-y-6 w-full max-w-lg mx-auto lg:max-w-none">
+          <div className="space-y-6 w-full max-w-sm sm:max-w-md md:max-w-lg mx-auto lg:max-w-none lg:mx-0 flex flex-col items-center lg:items-stretch">
             {/* Chart Wrapper */}
-            <div className="glass p-6 rounded-3xl">
-              <h2 className="font-bold mb-4 text-slate-800">{t.weeklyAdherenceTitle}</h2>
-              <UsageChart key={stats.taken + stats.missed} />
+            <div className="glass p-4 sm:p-6 rounded-3xl w-full flex flex-col items-center">
+              <h2 className="font-bold mb-4 text-slate-800 text-center w-full">{t.weeklyAdherenceTitle}</h2>
+              <div className="w-full">
+                <UsageChart key={stats.taken + stats.missed} />
+              </div>
             </div>
 
           </div>

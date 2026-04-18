@@ -41,8 +41,8 @@ function UsageChart() {
   }, []);
 
   return (
-    <div className="bg-white p-4 rounded-xl shadow-md mt-6">
-      <h3 className="text-lg font-bold mb-4">📈 Medicine Usage</h3>
+    <div className="bg-white p-2 sm:p-4 rounded-xl shadow-md mt-6 w-full flex flex-col items-center">
+      <h3 className="text-lg font-bold mb-4 text-center">📈 Medicine Usage</h3>
 
       <ResponsiveContainer width="100%" height={300}>
         <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>

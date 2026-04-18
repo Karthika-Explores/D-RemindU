@@ -10,6 +10,9 @@ const logRoutes = require("./routes/logRoutes");
 const reportRoutes = require("./routes/reportRoutes");
 const prescriptionRoutes = require("./routes/prescriptionRoutes");
 const userRoutes = require("./routes/userRoutes");
+const pushRoutes = require("./routes/pushRoutes");
+const { startCronJobs } = require("./services/cronService");
+
 connectDB();
 
 const app = express();
@@ -21,16 +24,22 @@ app.use(cors({
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
+
 app.use("/api/auth", authRoutes);
 app.use("/api/medications", medicationRoutes);
 app.use("/api/logs", logRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/prescriptions", prescriptionRoutes);
 app.use("/api/user", userRoutes);
+app.use("/api/push", pushRoutes);
+
 // Test route
 app.get("/", (req, res) => {
   res.send("D RemindU API is running...");
 });
+
+// Start Background Services
+startCronJobs();
 
 // Start server
 const PORT = process.env.PORT || 5000;
