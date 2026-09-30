@@ -1,4 +1,4 @@
-﻿/**
+/**
  * UsageChart.jsx
  * ─────────────────────────────────────────────────────────────────────────────
  * PURPOSE:
@@ -157,38 +157,37 @@ function UsageChart() {
     <div className="w-full flex flex-col items-center">
 
       {/* ── LEGEND ROW ────────────────────────────────────────────────────── */}
-      {/* Shows colour-coded pills for "Taken" and "Missed", plus a "Last 7 Days" badge */}
-      <div className="flex items-center justify-between w-full mb-4 px-1">
-        <div className="flex items-center gap-4 text-xs font-bold">
-
+      {/* Shows colour-coded pills for "Taken" and "Missed" */}
+      <div className="flex items-center justify-between w-full mb-3 px-0.5">
+        <div className="flex items-center gap-2 text-xs font-medium">
           {/* Green "Taken" legend pill */}
-          <div className="flex items-center gap-1.5 bg-emerald-500/10 text-emerald-600 px-2.5 py-1 rounded-full border border-emerald-500/20">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            Taken
+          <div className="flex items-center gap-1.5 bg-emerald-950/60 text-emerald-400 px-2.5 py-0.5 rounded-md border border-emerald-800">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            <span className="text-[11px] font-semibold">Taken</span>
           </div>
 
           {/* Red "Missed" legend pill */}
-          <div className="flex items-center gap-1.5 bg-rose-500/10 text-rose-600 px-2.5 py-1 rounded-full border border-rose-500/20">
-            <span className="w-2 h-2 rounded-full bg-rose-500"></span>
-            Missed
+          <div className="flex items-center gap-1.5 bg-rose-950/60 text-rose-400 px-2.5 py-0.5 rounded-md border border-rose-800">
+            <span className="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
+            <span className="text-[11px] font-semibold">Missed</span>
           </div>
         </div>
-
-        {/* Small badge showing the time range */}
-        <span className="text-[11px] font-semibold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full border border-indigo-100">
-          Last 7 Days
-        </span>
       </div>
 
       {/* ── CHART CONTAINER ───────────────────────────────────────────────── */}
       {/* Fixed 260px tall div that holds either the chart or the empty state */}
-      <div className="w-full h-[260px] relative">
+      <div className="w-full h-[240px] relative">
 
         {/* If there is no data yet, display a helpful empty-state message */}
         {data.length === 0 ? (
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400">
-            <span className="text-3xl mb-1">📊</span>
-            <p className="text-xs font-semibold">No activity logs recorded yet</p>
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 gap-1.5">
+            <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400">
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 3v18h18" />
+                <path d="m19 9-5 5-4-4-3 3" />
+              </svg>
+            </div>
+            <p className="text-xs font-medium text-slate-400">No activity logs recorded yet</p>
           </div>
         ) : (
           // ResponsiveContainer stretches the chart to fill the available width
@@ -219,14 +218,14 @@ function UsageChart() {
               <CartesianGrid
                 strokeDasharray="4 4"
                 vertical={false}
-                stroke="#e2e8f0"
-                opacity={0.6}
+                stroke="#334155"
+                opacity={0.4}
               />
 
               {/* X-Axis: reads the `date` field from each data object */}
               <XAxis
                 dataKey="date"
-                tick={{ fill: "#64748b", fontSize: 11, fontWeight: 600 }}
+                tick={{ fill: "#94a3b8", fontSize: 11, fontWeight: 600 }}
                 axisLine={false}   // Hide the axis line itself
                 tickLine={false}   // Hide the tick marks
               />
@@ -234,7 +233,7 @@ function UsageChart() {
               {/* Y-Axis: shows integer counts (no decimal numbers) */}
               <YAxis
                 allowDecimals={false}
-                tick={{ fill: "#64748b", fontSize: 11, fontWeight: 600 }}
+                tick={{ fill: "#94a3b8", fontSize: 11, fontWeight: 600 }}
                 axisLine={false}
                 tickLine={false}
               />

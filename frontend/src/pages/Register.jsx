@@ -1,36 +1,47 @@
 import { useState } from "react";
 import API from "../services/api";
-import { motion } from "framer-motion";
 import { translations } from "../utils/translations";
+import DRemindULogo from "../components/DRemindULogo";
 
 function Register() {
-  const [form, setForm] = useState({});
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    age: "",
+    weight: "",
+    glucoseLevel: "",
+    emergencyContact: ""
+  });
+  const [showPassword, setShowPassword] = useState(false);
   const [language, setLanguage] = useState(localStorage.getItem("language") || "en-US");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
   const t = translations[language] || translations["en-US"];
 
-  const handleRegister = async () => {
+  const handleRegister = async (e) => {
+    if (e) e.preventDefault();
     setErrorMessage("");
+
     if (!form.name || !form.email || !form.password || !form.age || !form.emergencyContact) {
-      setErrorMessage("Please fill mandatory fields: name, email, password, age, emergency contact");
+      setErrorMessage("Please complete all required fields (marked with an asterisk).");
       return;
     }
 
     setLoading(true);
     try {
       await API.post("/auth/register", form);
-      alert("Registered successfully");
+      alert("Account created successfully. Please sign in.");
       window.location.href = "/login";
     } catch (error) {
       let msg = "Error occurred during registration.";
       if (error.code === "ECONNABORTED" || error.message?.includes("timeout")) {
-        msg = "Request timed out. The server might be waking up or unavailable. Please try again in a few seconds.";
+        msg = "Request timed out. Please try again.";
       } else if (error.response?.data?.message) {
         msg = error.response.data.message;
       } else if (error.message === "Network Error") {
-        msg = "Network Error: Could not reach the server. Please check your internet connection or verify the backend service status.";
+        msg = "Unable to connect to the server. Please check your connection.";
       }
       setErrorMessage(msg);
     } finally {
@@ -38,119 +49,236 @@ function Register() {
     }
   };
 
-  const fields = [
-    { name: "name", label: t.nameLabel, type: "text", placeholder: "" },
-    { name: "email", label: t.emailLabel, type: "email", placeholder: "" },
-    { name: "password", label: t.passwordLabel, type: "password", placeholder: "••••••••" },
-    { name: "age", label: t.ageLabel, type: "number", placeholder: "" },
-    { name: "weight", label: t.weightLabel, type: "number", placeholder: "" },
-    { name: "glucoseLevel", label: t.glucoseLabel, type: "number", placeholder: "" },
-    { name: "emergencyContact", label: t.emergencyContactLabel || "Emergency Contact", type: "tel", placeholder: "e.g. 1234567890" },
-  ];
-
   return (
-    <div className="relative min-h-screen flex items-center justify-center bg-slate-50 overflow-hidden py-10">
-      {/* Background Shapes */}
-      <div className="absolute top-[-10%] right-[-5%] w-96 h-96 bg-blue-500/20 rounded-full blur-3xl opacity-70" />
-      <div className="absolute bottom-[-10%] left-[-10%] w-[30rem] h-[30rem] bg-indigo-500/20 rounded-full blur-3xl opacity-70" />
-      <div className="absolute top-[40%] left-[60%] w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl" />
-      
-      {/* Language Selector */}
-      <div className="absolute top-6 right-6 z-50">
+    <div className="min-h-screen bg-[#080c14] text-slate-100 flex flex-col justify-between px-4 py-6 sm:py-10">
+      {/* Top Bar: Language & DRemindU Yellow Brand mark */}
+      <header className="w-full max-w-5xl mx-auto flex items-center justify-between">
+        <DRemindULogo size="md" subtitle={true} />
+
         <select
-          className="glass text-sm font-bold text-slate-600 outline-none hover:text-indigo-600 transition cursor-pointer px-4 py-2 rounded-full appearance-none shadow-sm"
+          className="bg-slate-900 border border-slate-700 text-xs font-semibold text-slate-300 rounded-lg px-2.5 py-1.5 outline-none hover:border-slate-600 transition cursor-pointer shadow-xs"
           value={language}
           onChange={(e) => {
             setLanguage(e.target.value);
             localStorage.setItem("language", e.target.value);
           }}
+          title="Select language"
         >
-          <option value="en-US">🇺🇸 English</option>
-          <option value="hi-IN">🇮🇳 Hindi</option>
-          <option value="kn-IN">🇮🇳 Kannada</option>
-          <option value="ta-IN">🇮🇳 Tamil</option>
+          <option value="en-US">English (US)</option>
+          <option value="hi-IN">Hindi (HI)</option>
+          <option value="kn-IN">Kannada (KN)</option>
+          <option value="ta-IN">Tamil (TA)</option>
         </select>
-      </div>
+      </header>
 
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
-        className="glass p-8 sm:p-10 rounded-[2.5rem] shadow-2xl w-full max-w-[500px] z-10 mx-4 border border-white/60 mt-8"
-      >
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-tr from-indigo-600 via-blue-600 to-sky-500 rounded-3xl shadow-xl shadow-indigo-500/30 mb-4 p-2.5 border border-white/50 relative">
-            <svg viewBox="0 0 120 120" fill="none" className="w-full h-full">
-              <g transform="translate(52, 46) rotate(-35)">
-                <path d="M -16, -26 A 16,16 0 0,1 16, -26 L 16, 0 L -16, 0 Z" fill="#FFFFFF" />
-                <path d="M -16, 0 L 16, 0 L 16, 26 A 16,16 0 0,1 -16, 26 Z" fill="#10B981" />
-                <line x1="-16" y1="0" x2="16" y2="0" stroke="#0F172A" strokeWidth="2.5" opacity="0.2" />
-              </g>
-              <g transform="translate(68, 66)">
-                <circle cx="12" cy="12" r="16" fill="#F59E0B" />
-                <path d="M 12,4 C 8.6,4 6,6.6 6,10 L 6,14 L 4,16 L 4,17 L 20,17 L 20,16 L 18,14 L 18,10 C 18,6.6 15.4,4 12,4 Z M 10,18 C 10,19.1 10.9,20 12,20 C 13.1,20 14,19.1 14,18 Z" fill="#FFFFFF" />
-              </g>
-            </svg>
+      {/* Main Registration Card */}
+      <main className="w-full max-w-xl mx-auto my-auto py-6">
+        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl shadow-2xl p-6 sm:p-8 backdrop-blur-sm">
+          <div className="mb-6">
+            <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+              Create your patient account
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-400 mt-1">
+              Set up your medical profile and emergency contacts for automated reminders.
+            </p>
           </div>
-          <h2 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-1">D-RemindU</h2>
-          <p className="text-slate-500 font-semibold text-xs tracking-wider uppercase">💊 Create Your Medication Companion Account</p>
-        </div>
 
-        {errorMessage && (
-          <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm font-semibold">
-            {errorMessage}
-          </div>
-        )}
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          {fields.map((field) => (
-            <div key={field.name} className={`space-y-1 ${field.name === 'email' || field.name === 'password' || field.name === 'name' ? 'sm:col-span-2' : ''}`}>
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">{field.label}</label>
-              <input
-                type={field.type}
-                placeholder={field.placeholder}
-                className="w-full bg-white/60 border border-slate-200/60 p-3.5 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder:text-slate-400 font-medium text-slate-800"
-                onChange={(e) => {
-                  const val = e.target.value;
-                  if (field.name === "age" && Number(val) > 150) return;
-                  setForm({ ...form, [field.name]: val });
-                }}
-                value={form[field.name] || ""}
-              />
-            </div>
-          ))}
-        </div>
-
-        <button
-          onClick={handleRegister}
-          disabled={loading}
-          className={`w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white p-4 rounded-xl font-bold shadow-lg transition-all hover:-translate-y-0.5 mt-8 flex items-center justify-center ${
-            loading ? "opacity-75 cursor-not-allowed" : "hover:from-indigo-700 hover:to-blue-700 shadow-indigo-500/30"
-          }`}
-        >
-          {loading ? (
-            <span className="flex items-center gap-2">
-              <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          {errorMessage && (
+            <div className="mb-5 p-3.5 rounded-xl bg-red-950/40 border border-red-800 text-red-300 text-xs font-medium flex items-start gap-2.5">
+              <svg className="w-4 h-4 shrink-0 mt-0.5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
               </svg>
-              Registering...
-            </span>
-          ) : (
-            t.signUpBtn
+              <span>{errorMessage}</span>
+            </div>
           )}
-        </button>
 
-        <p className="text-center mt-8 text-sm font-semibold text-slate-500">
-          {t.hasAccountText}
-          <span 
-            className="text-indigo-600 hover:text-indigo-800 cursor-pointer transition"
-            onClick={() => (window.location.href = "/login")}
-          >
-            {t.logInText}
-          </span>
-        </p>
-      </motion.div>
+          <form onSubmit={handleRegister} className="space-y-5">
+            {/* Section 1: Account credentials */}
+            <div className="space-y-3.5">
+              <h2 className="text-xs font-bold text-slate-300 uppercase tracking-wider border-b border-slate-800 pb-1.5 flex items-center gap-1.5">
+                <svg className="w-3.5 h-3.5 text-yellow-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+                Account Credentials
+              </h2>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  {t.nameLabel || "Full Name"} <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Sarah Jenkins"
+                  className="w-full h-10 bg-slate-950 border border-slate-700/80 px-3 rounded-lg text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition"
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    {t.emailLabel || "Email"} <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    autoComplete="email"
+                    placeholder="sarah@example.com"
+                    className="w-full h-10 bg-slate-950 border border-slate-700/80 px-3 rounded-lg text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition"
+                    value={form.email}
+                    onChange={(e) => setForm({ ...form, email: e.target.value })}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    {t.passwordLabel || "Password"} <span className="text-red-400">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      autoComplete="new-password"
+                      placeholder="••••••••"
+                      className="w-full h-10 bg-slate-950 border border-slate-700/80 pl-3 pr-9 rounded-lg text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition"
+                      value={form.password}
+                      onChange={(e) => setForm({ ...form, password: e.target.value })}
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-200 transition cursor-pointer"
+                    >
+                      {showPassword ? (
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="m9.88 9.88a3 3 0 1 0 4.24 4.24" />
+                          <line x1="2" x2="22" y1="2" y2="22" />
+                        </svg>
+                      ) : (
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Section 2: Health Vitals */}
+            <div className="space-y-3.5 pt-1">
+              <h2 className="text-xs font-bold text-slate-300 uppercase tracking-wider border-b border-slate-800 pb-1.5 flex items-center gap-1.5">
+                <svg className="w-3.5 h-3.5 text-yellow-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                </svg>
+                Health Metrics & Baseline
+              </h2>
+
+              <div className="grid grid-cols-3 gap-2.5 sm:gap-3.5">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    {t.ageLabel || "Age"} <span className="text-red-400">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min="1"
+                      max="130"
+                      placeholder="e.g. 45"
+                      className="w-full h-10 bg-slate-950 border border-slate-700/80 px-3 rounded-lg text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition"
+                      value={form.age}
+                      onChange={(e) => setForm({ ...form, age: e.target.value })}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    {t.weightLabel || "Weight (kg)"}
+                  </label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    placeholder="e.g. 70"
+                    className="w-full h-10 bg-slate-950 border border-slate-700/80 px-3 rounded-lg text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition"
+                    value={form.weight}
+                    onChange={(e) => setForm({ ...form, weight: e.target.value })}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    {t.glucoseLabel || "Glucose (mg/dL)"}
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="e.g. 110"
+                    className="w-full h-10 bg-slate-950 border border-slate-700/80 px-3 rounded-lg text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition"
+                    value={form.glucoseLevel}
+                    onChange={(e) => setForm({ ...form, glucoseLevel: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  {t.emergencyContactLabel || "Emergency Caregiver Contact"} <span className="text-red-400">*</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+                    <svg className="w-4 h-4 text-rose-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                    </svg>
+                  </div>
+                  <input
+                    type="tel"
+                    placeholder="+1 234 567 8900"
+                    className="w-full h-10 bg-slate-950 border border-slate-700/80 pl-9 pr-3 rounded-lg text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition"
+                    value={form.emergencyContact}
+                    onChange={(e) => setForm({ ...form, emergencyContact: e.target.value })}
+                    required
+                  />
+                </div>
+                <p className="text-[11px] text-slate-400 mt-1">Directly phoned when the one-tap Emergency SOS trigger is activated.</p>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full h-11 mt-4 bg-yellow-400 hover:bg-yellow-300 text-slate-950 rounded-xl text-sm font-bold shadow-md shadow-yellow-400/20 hover:shadow-lg hover:shadow-yellow-400/30 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {loading ? (
+                <>
+                  <svg className="w-4 h-4 animate-spin text-slate-950" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  <span>Creating Account...</span>
+                </>
+              ) : (
+                <span>{t.signUpBtn || "Complete Registration"}</span>
+              )}
+            </button>
+          </form>
+
+          <div className="mt-6 pt-5 border-t border-slate-800 text-center">
+            <p className="text-xs text-slate-400">
+              {t.hasAccountText || "Already registered? "}
+              <a href="/login" className="text-yellow-400 font-semibold hover:text-yellow-300 hover:underline">
+                {t.logInText || "Sign in"}
+              </a>
+            </p>
+          </div>
+        </div>
+      </main>
+
+      <div className="py-2" />
     </div>
   );
 }

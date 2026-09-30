@@ -48,6 +48,7 @@ import { useNavigate } from "react-router-dom";
 
 // Our chart component that shows the 7-day medication activity graph
 import UsageChart from "../components/UsageChart";
+import DRemindULogo from "../components/DRemindULogo";
 
 // ── MODULE-LEVEL CACHE ────────────────────────────────────────────────────────
 // `triggeredCache` lives OUTSIDE the component so it is never reset on re-render.
@@ -616,12 +617,12 @@ function Dashboard() {
 
     return (
       <div className={`flex flex-col space-y-1 ${wrapperClass}`}>
-        <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{label}</label>
+        <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider">{label}</label>
         <input
           type={type}
           value={val}
           onChange={onChange}
-          className="border-slate-200 bg-white/50 focus:bg-white text-slate-800 focus:ring-2 focus:ring-indigo-500 rounded-lg p-2.5 outline-none transition shadow-sm w-full"
+          className="border border-slate-700 bg-slate-950 text-white placeholder:text-slate-500 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 rounded-lg p-2.5 outline-none transition w-full text-sm"
         />
       </div>
     );
@@ -644,7 +645,7 @@ function Dashboard() {
 
     return (
       <div className="flex flex-col space-y-1 col-span-2 sm:col-span-1 md:col-span-2">
-        <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Reminder Times ({doses} Doses)</label>
+        <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Reminder Times ({doses} Doses)</label>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
           {/* Create one time picker for each dose */}
           {Array.from({ length: doses }).map((_, i) => (
@@ -658,7 +659,7 @@ function Dashboard() {
                  // Rejoin all times into a single comma-separated string
                  setFormState({...formState, reminderTime: newTimes.join(",")});
                }}
-               className="border-slate-200 bg-white/50 focus:bg-white text-slate-800 focus:ring-2 focus:ring-indigo-500 rounded-lg p-2 outline-none transition shadow-sm w-full text-sm"
+               className="border border-slate-700 bg-slate-950 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 rounded-lg p-2 outline-none transition w-full text-sm"
                required
              />
           ))}
@@ -668,33 +669,21 @@ function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen relative" style={{ background: 'linear-gradient(135deg, #f0f4ff 0%, #f8f6ff 30%, #eef9f4 60%, #f0f4ff 100%)' }}>
-      {/* Decorative background blobs */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute -top-32 -left-32 w-[500px] h-[500px] bg-indigo-400/10 rounded-full blur-[100px]"></div>
-        <div className="absolute top-1/2 -right-40 w-[400px] h-[400px] bg-violet-400/10 rounded-full blur-[100px]"></div>
-        <div className="absolute -bottom-32 left-1/3 w-[450px] h-[450px] bg-teal-400/10 rounded-full blur-[100px]"></div>
-        <div className="absolute top-1/4 left-1/2 w-[300px] h-[300px] bg-blue-300/8 rounded-full blur-[80px]"></div>
-      </div>
+    <div className="min-h-screen bg-[#080c14] text-slate-100">
       <div className="relative z-10">
       {/* Top Navigation Bar with Emergency, Medication, Profile, and Language */}
-      <header className="sticky top-0 z-40 bg-white/85 backdrop-blur-md border-b border-slate-200/60 shadow-xs mb-4 sm:mb-6">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3.5 flex items-center justify-between gap-2">
+      <header className="sticky top-0 z-40 bg-[#090d16]/95 backdrop-blur-md border-b border-slate-800 shadow-2xs mb-4 sm:mb-6">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3 flex items-center justify-between gap-2">
           {/* Left: Brand / Logo */}
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 flex items-center justify-center text-white text-base shadow-sm font-black">
-              💊
-            </div>
-            <span className="font-extrabold text-base sm:text-lg text-slate-900 tracking-tight hidden sm:inline">
-              Remind<span className="text-indigo-600">U</span>
-            </span>
+          <div className="flex items-center gap-2.5 flex-shrink-0">
+            <DRemindULogo size="md" textClassName="hidden sm:flex" />
           </div>
 
           {/* Right: Emergency Button, Medication Button, Profile Button, Language Selector */}
           <div className="flex items-center gap-1.5 sm:gap-2.5 flex-nowrap flex-shrink-0">
             {/* Language Selector */}
             <select
-              className="h-[38px] bg-slate-100/90 hover:bg-slate-200/70 border border-slate-200/80 rounded-full text-xs font-semibold text-slate-700 px-2 sm:px-3 outline-none transition cursor-pointer flex-shrink-0"
+              className="h-[36px] sm:h-[38px] bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-lg text-xs font-semibold text-slate-200 px-2 sm:px-2.5 outline-none transition cursor-pointer flex-shrink-0 shadow-2xs"
               value={language}
               onChange={(e) => {
                 setLanguage(e.target.value);
@@ -702,45 +691,51 @@ function Dashboard() {
               }}
               title="Select Language"
             >
-              <option value="en-US">🇺🇸 EN</option>
-              <option value="hi-IN">🇮🇳 HI</option>
-              <option value="kn-IN">🇮🇳 KN</option>
-              <option value="ta-IN">🇮🇳 TA</option>
+              <option value="en-US">EN</option>
+              <option value="hi-IN">HI</option>
+              <option value="kn-IN">KN</option>
+              <option value="ta-IN">TA</option>
             </select>
 
             {/* Emergency Button - on top right next to profile */}
             <button
               onClick={() => setShowEmergency(true)}
-              className="h-[38px] flex-shrink-0 bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 text-white font-extrabold text-xs sm:text-sm px-2.5 sm:px-3.5 rounded-full shadow-sm shadow-rose-500/25 active:scale-95 transition flex items-center gap-1.5 border border-rose-400/40"
+              className="h-[36px] sm:h-[38px] flex-shrink-0 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs sm:text-sm px-2.5 sm:px-3 rounded-lg shadow-2xs active:scale-95 transition flex items-center gap-1.5 cursor-pointer"
               title={t.emergencyBtn || "Emergency Guide"}
             >
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-90"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
-              </span>
-              <span>🚨</span>
-              <span className="hidden sm:inline font-bold">{t.emergencyBtn}</span>
-              <span className="sm:hidden font-bold">SOS</span>
+              <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                <line x1="12" y1="9" x2="12" y2="13" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+              <span className="hidden sm:inline">{t.emergencyBtn}</span>
+              <span className="sm:hidden">SOS</span>
             </button>
 
             {/* Medication (+ Add Med) Button - on top right next to profile */}
             <button
               onClick={() => setShowAddModal(true)}
-              className="h-[38px] flex-shrink-0 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs sm:text-sm px-2.5 sm:px-3.5 rounded-full shadow-sm shadow-indigo-600/25 active:scale-95 transition flex items-center gap-1 sm:gap-1.5 border border-indigo-500/30"
+              className="h-[36px] sm:h-[38px] flex-shrink-0 bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-bold text-xs sm:text-sm px-2.5 sm:px-3 rounded-lg shadow-md shadow-yellow-400/20 active:scale-95 transition flex items-center gap-1 sm:gap-1.5 cursor-pointer"
               title={t.addMedTitle || "Add Medication"}
             >
-              <span className="text-sm sm:text-base font-black leading-none">+</span>
+              <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
               <span className="hidden sm:inline">{t.addMedTitle}</span>
-              <span className="sm:hidden font-bold">Med</span>
+              <span className="sm:hidden">Med</span>
             </button>
 
             {/* Profile Button */}
             <button
               onClick={() => navigate("/profile")}
-              className="h-[38px] flex-shrink-0 bg-white hover:bg-slate-50 border border-slate-200/90 px-2.5 sm:px-3.5 rounded-full text-xs sm:text-sm font-bold text-slate-700 hover:text-indigo-600 hover:border-indigo-200 shadow-xs hover:shadow-sm active:scale-95 transition flex items-center gap-1 sm:gap-1.5"
+              className="h-[36px] sm:h-[38px] flex-shrink-0 bg-slate-900 hover:bg-slate-800 border border-slate-700 px-2.5 sm:px-3 rounded-lg text-xs sm:text-sm font-semibold text-slate-200 hover:text-white shadow-2xs active:scale-95 transition flex items-center gap-1.5 cursor-pointer"
               title="Profile"
             >
-              <span>👤</span>
+              <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
               <span className="hidden md:inline">Profile</span>
             </button>
           </div>
@@ -750,27 +745,19 @@ function Dashboard() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
 
         {/* Greeting Banner */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden mb-8 rounded-[2rem] bg-gradient-to-r from-indigo-600 via-blue-600 to-violet-600 text-white px-6 sm:px-8 py-6 shadow-xl shadow-indigo-500/30"
-        >
-          {/* background orbs */}
-          <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
-          <div className="absolute -bottom-10 left-20 w-32 h-32 bg-violet-400/20 rounded-full blur-2xl pointer-events-none"></div>
-
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative z-10">
+        <div className="mb-6 rounded-2xl bg-slate-900/90 border border-slate-800 text-white p-5 sm:p-7 shadow-xl">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <p className="text-white/70 text-sm font-semibold uppercase tracking-widest mb-0.5">
+              <p className="text-yellow-400 text-xs font-semibold uppercase tracking-wider mb-1">
                 {currentTime.toLocaleDateString(language, { weekday: 'long', day: 'numeric', month: 'long' })}
               </p>
-              <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
-                {getGreeting()}, {userName}! 👋
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+                {getGreeting()}, {userName}
               </h1>
-              <p className="text-white/70 text-sm font-medium mt-1">
+              <p className="text-slate-300 text-xs sm:text-sm mt-0.5">
                 {medications.length > 0
-                  ? `You have ${medications.length} active medication${medications.length > 1 ? 's' : ''} scheduled today.`
-                  : "No medications scheduled yet. Add your first one below."}
+                  ? `You have ${medications.length} active prescription${medications.length > 1 ? 's' : ''} scheduled for today.`
+                  : "No medications currently scheduled. Add your first prescription below."}
               </p>
             </div>
 
@@ -778,24 +765,24 @@ function Dashboard() {
             {(() => {
               const next = getNextReminder();
               if (!next) return (
-                <div className="bg-white/15 backdrop-blur border border-white/20 rounded-2xl px-4 py-3 text-center w-full sm:w-auto sm:min-w-[140px]">
-                  <p className="text-white/60 text-[10px] uppercase tracking-widest font-bold mb-0.5">Next Dose</p>
-                  <p className="text-white font-black text-sm">All done today! 🎉</p>
+                <div className="bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-2.5 text-center w-full sm:w-auto sm:min-w-[140px]">
+                  <p className="text-slate-400 text-[10px] uppercase tracking-wider font-semibold mb-0.5">Next Dose</p>
+                  <p className="text-white font-bold text-xs sm:text-sm">All done today</p>
                 </div>
               );
               const hrs = Math.floor(next.minsAway / 60);
               const mins = next.minsAway % 60;
               const timeLabel = hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m`;
               return (
-                <div className="bg-white/15 backdrop-blur border border-white/20 rounded-2xl px-4 py-3 text-center w-full sm:w-auto sm:min-w-[160px]">
-                  <p className="text-white/60 text-[10px] uppercase tracking-widest font-bold mb-0.5">Next Dose In</p>
-                  <p className="text-white font-black text-xl leading-none">{timeLabel}</p>
-                  <p className="text-white/80 text-xs font-semibold mt-1 truncate">{next.name} · {next.time}</p>
+                <div className="bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-2.5 text-center w-full sm:w-auto sm:min-w-[150px]">
+                  <p className="text-slate-400 text-[10px] uppercase tracking-wider font-semibold mb-0.5">Next Dose in</p>
+                  <p className="text-yellow-400 font-bold text-lg leading-none">{timeLabel}</p>
+                  <p className="text-slate-300 text-xs mt-1 truncate">{next.name} · {next.time}</p>
                 </div>
               );
             })()}
           </div>
-        </motion.div>
+        </div>
 
         {/* Today's Schedule Strip */}
         {medications.length > 0 && (() => {
@@ -817,30 +804,47 @@ function Dashboard() {
           schedule.sort((a, b) => a.hh * 60 + a.mm - (b.hh * 60 + b.mm));
           if (schedule.length === 0) return null;
           return (
-            <div className="mb-8">
+            <div className="mb-6">
               <div className="flex items-center gap-2 mb-3">
-                <span className="text-sm font-extrabold text-slate-700 uppercase tracking-widest">⏱ Today's Schedule</span>
-                <div className="flex-1 h-px bg-slate-200"></div>
+                <svg className="w-4 h-4 text-yellow-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
+                </svg>
+                <span className="text-xs font-bold text-slate-300 uppercase tracking-wider">Today's Schedule</span>
+                <div className="flex-1 h-px bg-slate-800"></div>
               </div>
-              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+              <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-hide">
                 {schedule.map(item => (
                   <div
                     key={item.id}
-                    className={`flex-shrink-0 flex flex-col items-center justify-center px-4 py-3 rounded-2xl border-2 min-w-[110px] transition-all duration-300 ${
+                    className={`flex-shrink-0 flex flex-col items-center justify-center px-3.5 py-2.5 rounded-xl border min-w-[105px] transition-all ${
                       item.isLogged
-                        ? 'bg-emerald-50 border-emerald-400 text-emerald-700 shadow-md shadow-emerald-100'
+                        ? 'bg-emerald-950/40 border-emerald-800 text-emerald-300'
                         : item.isPast
-                        ? 'bg-rose-50 border-rose-300 text-rose-600 shadow-md shadow-rose-100'
-                        : 'bg-white border-indigo-200 text-indigo-700 shadow-sm'
+                        ? 'bg-rose-950/40 border-rose-800 text-rose-300'
+                        : 'bg-slate-900 border-slate-800 text-slate-200'
                     }`}
                   >
-                    <span className="text-lg mb-0.5">
-                      {item.isLogged ? '✅' : item.isPast ? '⏰' : '💊'}
-                    </span>
-                    <span className="font-black text-sm text-center leading-tight max-w-[90px] truncate">{item.name}</span>
-                    <span className="text-xs font-bold mt-1 opacity-80">{item.time}</span>
-                    {item.isLogged && <span className="text-[9px] font-extrabold uppercase tracking-wider mt-1 bg-emerald-500 text-white px-1.5 py-0.5 rounded-full">Done</span>}
-                    {!item.isLogged && item.isPast && <span className="text-[9px] font-extrabold uppercase tracking-wider mt-1 bg-rose-500 text-white px-1.5 py-0.5 rounded-full">Due</span>}
+                    <div className="mb-1">
+                      {item.isLogged ? (
+                        <svg className="w-4 h-4 text-emerald-400" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                      ) : item.isPast ? (
+                        <svg className="w-4 h-4 text-rose-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <circle cx="12" cy="12" r="10" />
+                          <polyline points="12 6 12 12 16 14" />
+                        </svg>
+                      ) : (
+                        <svg className="w-4 h-4 text-yellow-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z" />
+                        </svg>
+                      )}
+                    </div>
+                    <span className="font-semibold text-xs text-center leading-tight max-w-[95px] truncate text-white">{item.name}</span>
+                    <span className="text-[11px] font-medium text-slate-400 mt-0.5">{item.time}</span>
+                    {item.isLogged && <span className="text-[9px] font-bold uppercase tracking-wider mt-1 bg-emerald-600 text-white px-1.5 py-0.2 rounded">Taken</span>}
+                    {!item.isLogged && item.isPast && <span className="text-[9px] font-bold uppercase tracking-wider mt-1 bg-rose-600 text-white px-1.5 py-0.2 rounded">Due</span>}
                   </div>
                 ))}
               </div>
@@ -851,137 +855,144 @@ function Dashboard() {
         {/* Header Section */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">{t.dashboardTitle1} <span className="text-gradient">{t.dashboardTitle2}</span></h1>
-            <p className="text-slate-500 mt-1 font-medium text-sm sm:text-base">{t.dashboardSubtitle}</p>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white tracking-tight">{t.dashboardTitle1} <span className="text-yellow-400">{t.dashboardTitle2}</span></h1>
+            <p className="text-slate-400 mt-1 font-medium text-sm sm:text-base">{t.dashboardSubtitle}</p>
           </div>
 
-          <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 sm:gap-3 w-full md:w-auto">
-            <button onClick={() => setShowLowStockModal(true)} className="glass bg-orange-100/80 hover:bg-orange-200 text-orange-700 border-2 border-orange-200 px-3 sm:px-4 py-2.5 rounded-full text-xs sm:text-sm font-bold transition shadow-sm flex items-center justify-center gap-1.5 sm:gap-2">
-              ⚠️ Low Stock
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 sm:gap-2.5 w-full md:w-auto">
+            <button onClick={() => setShowLowStockModal(true)} className="bg-slate-900 hover:bg-slate-800 text-amber-300 border border-amber-500/40 px-3 sm:px-3.5 py-2 rounded-lg text-xs font-semibold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs">
+              <svg className="w-3.5 h-3.5 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                <line x1="12" y1="9" x2="12" y2="13" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+              <span>Low Stock</span>
             </button>
-            <button onClick={() => setShowAddModal(true)} className="glass bg-white hover:bg-indigo-50 text-indigo-700 px-3 sm:px-4 py-2.5 rounded-full text-xs sm:text-sm font-bold transition shadow-sm border-2 border-indigo-200 flex items-center justify-center gap-1.5 sm:gap-2">
-              <span className="text-base sm:text-lg leading-none font-black">+</span> {t.addMedTitle}
+            <button onClick={() => setShowAddModal(true)} className="bg-yellow-400 hover:bg-yellow-300 text-slate-950 border border-yellow-400 px-3 sm:px-3.5 py-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-md shadow-yellow-400/20">
+              <svg className="w-3.5 h-3.5 text-slate-950" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              <span>{t.addMedTitle}</span>
             </button>
-            <button onClick={() => navigate("/upload")} className="col-span-2 sm:col-auto bg-indigo-600 hover:bg-indigo-700 text-white shadow-md sm:shadow-lg shadow-indigo-600/30 px-4 py-2.5 rounded-full text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2">
-              📸 {t.uploadBtn}
+            <button onClick={() => navigate("/upload")} className="col-span-2 sm:col-auto bg-blue-600 hover:bg-blue-500 text-white px-3.5 py-2 rounded-lg text-xs font-semibold transition flex items-center justify-center gap-1.5 shadow-xs cursor-pointer">
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+              <span>{t.uploadBtn}</span>
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
 
           {/* LEFT COLUMN: Stats & Active Meds */}
-          <div className="col-span-2 space-y-8">
+          <div className="col-span-2 space-y-6 sm:space-y-8">
 
             {/* Stats Cards - Responsive 2x2 on mobile, 4-col on desktop */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-              <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="glass p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl relative overflow-hidden border border-emerald-100/80 shadow-sm sm:shadow-md hover:-translate-y-1 transition duration-300">
-                <div className="absolute -right-4 -top-4 w-16 sm:w-20 h-16 sm:h-20 bg-emerald-500/10 rounded-full blur-xl"></div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-3.5">
+              <div className="bg-slate-900/90 p-4 rounded-xl border border-slate-800 shadow-xl">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-slate-500 font-bold uppercase text-[10px] sm:text-xs tracking-wider">{t.takenLabel}</h3>
-                  <span className="w-6 sm:w-7 h-6 sm:h-7 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs font-black">✓</span>
+                  <span className="text-slate-400 font-semibold uppercase text-[10px] tracking-wider">{t.takenLabel}</span>
+                  <span className="w-5 h-5 rounded-md bg-emerald-950/60 text-emerald-400 border border-emerald-800/80 flex items-center justify-center text-xs font-bold">✓</span>
                 </div>
-                <p className="text-2xl sm:text-4xl font-black text-slate-800 mt-2">{stats.taken}</p>
-              </motion.div>
-              <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1 }} className="glass p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl relative overflow-hidden border border-rose-100/80 shadow-sm sm:shadow-md hover:-translate-y-1 transition duration-300">
-                <div className="absolute -right-4 -top-4 w-16 sm:w-20 h-16 sm:h-20 bg-rose-500/10 rounded-full blur-xl"></div>
+                <p className="text-2xl sm:text-3xl font-bold text-white mt-2">{stats.taken}</p>
+                <p className="text-[11px] text-slate-400 mt-0.5">Doses taken today</p>
+              </div>
+
+              <div className="bg-slate-900/90 p-4 rounded-xl border border-slate-800 shadow-xl">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-slate-500 font-bold uppercase text-[10px] sm:text-xs tracking-wider">{t.missedLabel}</h3>
-                  <span className="w-6 sm:w-7 h-6 sm:h-7 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center text-xs font-black">✕</span>
+                  <span className="text-slate-400 font-semibold uppercase text-[10px] tracking-wider">{t.missedLabel}</span>
+                  <span className="w-5 h-5 rounded-md bg-rose-950/60 text-rose-400 border border-rose-800/80 flex items-center justify-center text-xs font-bold">✕</span>
                 </div>
-                <p className="text-2xl sm:text-4xl font-black text-slate-800 mt-2">{stats.missed}</p>
-              </motion.div>
-              <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }} className="glass p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl relative overflow-hidden bg-gradient-to-br from-indigo-600 via-indigo-700 to-blue-700 border-none shadow-sm sm:shadow-lg shadow-indigo-500/25 hover:-translate-y-1 transition duration-300 text-white">
+                <p className="text-2xl sm:text-3xl font-bold text-white mt-2">{stats.missed}</p>
+                <p className="text-[11px] text-slate-400 mt-0.5">Missed or skipped</p>
+              </div>
+
+              <div className="bg-slate-900/90 p-4 rounded-xl border border-slate-800 shadow-xl">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-white/80 font-bold uppercase text-[10px] sm:text-xs tracking-wider">{t.adherenceLabel}</h3>
-                  <span className="w-6 sm:w-7 h-6 sm:h-7 rounded-full bg-white/20 text-white flex items-center justify-center text-xs font-black">%</span>
+                  <span className="text-slate-400 font-semibold uppercase text-[10px] tracking-wider">{t.adherenceLabel}</span>
+                  <span className="w-5 h-5 rounded-md bg-yellow-400/20 text-yellow-400 border border-yellow-500/30 flex items-center justify-center text-xs font-bold">%</span>
                 </div>
-                <p className="text-2xl sm:text-4xl font-black text-white mt-2">{stats.adherence}%</p>
-              </motion.div>
-              <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }} className="glass p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl relative overflow-hidden bg-gradient-to-br from-cyan-600 via-teal-600 to-emerald-600 border-none shadow-sm sm:shadow-lg shadow-cyan-500/25 hover:-translate-y-1 transition duration-300 text-white">
+                <p className="text-2xl sm:text-3xl font-bold text-yellow-400 mt-2">{stats.adherence}%</p>
+                <p className="text-[11px] text-slate-400 mt-0.5">Overall compliance</p>
+              </div>
+
+              <div className="bg-slate-900/90 p-4 rounded-xl border border-slate-800 shadow-xl">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-white/80 font-bold uppercase text-[10px] sm:text-xs tracking-wider">Glucose</h3>
-                  <span className="w-6 sm:w-7 h-6 sm:h-7 rounded-full bg-white/20 text-white flex items-center justify-center text-xs font-black">🩸</span>
+                  <span className="text-slate-400 font-semibold uppercase text-[10px] tracking-wider">Glucose</span>
+                  <span className="w-5 h-5 rounded-md bg-slate-800 text-slate-300 border border-slate-700 flex items-center justify-center text-[10px] font-bold">mg</span>
                 </div>
-                <p className="text-2xl sm:text-4xl font-black text-white mt-2">{glucoseLevel ? glucoseLevel : "--"}</p>
-              </motion.div>
+                <p className="text-2xl sm:text-3xl font-bold text-white mt-2">{glucoseLevel ? glucoseLevel : "--"}</p>
+                <p className="text-[11px] text-slate-400 mt-0.5">Fasting baseline</p>
+              </div>
             </div>
 
-            {/* Meds List with Outer Border Container */}
-            <div className="relative overflow-hidden bg-gradient-to-br from-white via-indigo-50/30 to-slate-50 p-4 sm:p-7 rounded-3xl sm:rounded-[2.5rem] border-2 border-indigo-200/80 shadow-xl shadow-indigo-500/5 backdrop-blur-xl">
-              {/* Background ambient lighting glow */}
-              <div className="absolute -top-12 -left-12 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            {/* Meds List Container */}
+            <div className="bg-slate-900/90 p-4 sm:p-6 rounded-2xl border border-slate-800 shadow-xl">
 
-              <div className="flex flex-wrap justify-between items-center mb-6 pb-4 border-b border-indigo-100/80 relative z-10 gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 flex-shrink-0 rounded-2xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/30 border border-indigo-400/30 relative">
-                    {/* Active Reminder Capsule & Notification Icon */}
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-white drop-shadow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <div className="flex flex-wrap justify-between items-center mb-5 pb-3 border-b border-slate-800 gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-lg bg-yellow-400/10 border border-yellow-400/30 text-yellow-400 flex items-center justify-center shrink-0">
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/>
                       <path d="m8.5 8.5 7 7"/>
                     </svg>
-                    <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500 border-2 border-white"></span>
-                    </span>
                   </div>
                   <div>
-                    <h2 className="text-lg sm:text-2xl font-extrabold text-slate-900 tracking-tight">{t.activeMedsTitle}</h2>
-                    <p className="text-xs text-slate-500 font-medium hidden sm:block">Your daily scheduled prescriptions & active reminders</p>
+                    <h2 className="text-base sm:text-lg font-bold text-white tracking-tight">{t.activeMedsTitle}</h2>
+                    <p className="text-xs text-slate-400">Your daily scheduled prescriptions & active reminders</p>
                   </div>
                 </div>
-                <button onClick={() => setShowEmergency(true)} className="bg-rose-100 text-rose-700 hover:bg-rose-200 border border-rose-200/80 px-3 py-1.5 rounded-full text-xs sm:text-sm font-bold transition flex items-center gap-1.5 shadow-sm">
-                  <span className="relative flex h-2.5 w-2.5"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span><span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span></span>
-                  {t.emergencyBtn}
-                </button>
+                <span className="text-xs font-semibold text-slate-300 bg-slate-800 px-2.5 py-1 rounded-md border border-slate-700">
+                  {medications.length} {medications.length === 1 ? 'Medication' : 'Medications'}
+                </span>
               </div>
 
-              {/* Medication cards — cleanly separated with distinct cards, margins, and borders */}
-              <div className="space-y-4 relative z-10">
+              {/* Medication cards */}
+              <div className="space-y-3.5">
                 <AnimatePresence>
                   {medications.length === 0 && (
-                    <div className="bg-white/80 border-2 border-dashed border-slate-200 rounded-3xl p-8 text-center">
-                      <span className="text-4xl block mb-2">📋</span>
-                      <p className="text-slate-500 font-bold text-lg">{t.emptyMeds}</p>
+                    <div className="bg-slate-950/60 border border-dashed border-slate-800 rounded-xl p-8 text-center">
+                      <div className="w-10 h-10 rounded-xl bg-slate-900 text-slate-400 flex items-center justify-center mx-auto mb-2.5">
+                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+                          <rect width="8" height="4" x="8" y="2" rx="1" ry="1"/>
+                        </svg>
+                      </div>
+                      <p className="text-slate-300 font-semibold text-sm">{t.emptyMeds}</p>
+                      <p className="text-slate-500 text-xs mt-0.5">Use the "+ Add Medication" button above to log your prescriptions.</p>
                     </div>
                   )}
-                  {medications.map((med, idx) => {
-                    // Distinct accent colors for borders and sequence badges
-                    const accents = [
-                      { border: 'border-l-indigo-500',  badgeBg: 'bg-indigo-500',  badgeRing: 'ring-indigo-100',  badgeText: 'text-indigo-600',  cardBorder: 'border-indigo-100' },
-                      { border: 'border-l-violet-500',  badgeBg: 'bg-violet-500',  badgeRing: 'ring-violet-100',  badgeText: 'text-violet-600',  cardBorder: 'border-violet-100' },
-                      { border: 'border-l-teal-500',    badgeBg: 'bg-teal-500',    badgeRing: 'ring-teal-100',    badgeText: 'text-teal-600',    cardBorder: 'border-teal-100' },
-                      { border: 'border-l-rose-500',    badgeBg: 'bg-rose-500',    badgeRing: 'ring-rose-100',    badgeText: 'text-rose-600',    cardBorder: 'border-rose-100' },
-                      { border: 'border-l-amber-500',   badgeBg: 'bg-amber-500',   badgeRing: 'ring-amber-100',   badgeText: 'text-amber-600',   cardBorder: 'border-amber-100' },
-                    ];
-                    const accent = accents[idx % accents.length];
-                    return (
+                  {medications.map((med, idx) => (
                     <motion.div
                       layout
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.95 }}
                       key={med._id}
-                      className={`group relative bg-white/95 rounded-2xl p-5 sm:p-6 transition-all duration-300 border-2 ${accent.cardBorder} border-l-[6px] ${accent.border} shadow-sm hover:shadow-lg hover:border-slate-300`}
+                      className="bg-slate-950/70 rounded-xl p-4 sm:p-5 border border-slate-800 shadow-sm hover:border-slate-700 transition"
                     >
-                      {/* Top separator header with sequence badge and active indicator */}
-                      <div className="flex items-center justify-between pb-3.5 mb-4 border-b border-slate-100">
-                        <div className="flex items-center gap-2.5">
-                          <span className={`w-6 h-6 rounded-full ${accent.badgeBg} text-white text-[11px] font-black flex items-center justify-center flex-shrink-0 shadow-sm ring-2 ${accent.badgeRing}`}>
+                      {/* Top row with sequence badge & active indicator */}
+                      <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-800/80">
+                        <div className="flex items-center gap-2">
+                          <span className="w-5 h-5 rounded-md bg-yellow-400/10 text-yellow-400 text-xs font-bold flex items-center justify-center shrink-0 border border-yellow-400/30">
                             {idx + 1}
                           </span>
-                          <span className={`text-xs font-extrabold uppercase tracking-wider ${accent.badgeText}`}>
-                            Reminder #{idx + 1}
+                          <span className="text-xs font-semibold text-slate-300">
+                            Prescription #{idx + 1}
                           </span>
                         </div>
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-50 border border-slate-200/80 text-[11px] font-semibold text-slate-600">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                          Active
+                        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-950/60 text-emerald-400 border border-emerald-800">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                          <span>Active</span>
                         </div>
                       </div>
                       {editingId === med._id ? (
-                        <div className="space-y-4">
-                          <h4 className="font-bold text-slate-800">{t.editMedsTitle}</h4>
+                        <div className="space-y-3.5">
+                          <h4 className="font-bold text-sm text-white">{t.editMedsTitle}</h4>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             {renderInput('edit', 'medicineName', 'Name', 'text', 'sm:col-span-2')}
                             {renderInput('edit', 'dosage', 'Dosage')}
@@ -989,54 +1000,74 @@ function Dashboard() {
                             {renderTimeInputs('edit')}
                             {renderInput('edit', 'totalTablets', 'Stock', 'number', 'sm:col-span-2')}
                           </div>
-                          <div className="flex gap-2 pt-3 border-t border-slate-100">
-                            <button onClick={handleUpdate} className="flex-1 bg-slate-900 text-white rounded-lg py-2 font-semibold hover:bg-slate-800 transition">{t.saveBtn}</button>
-                            <button onClick={() => handleDelete(med._id)} className="flex-1 bg-rose-600 text-white rounded-lg py-2 font-semibold hover:bg-rose-700 transition">Delete</button>
-                            <button onClick={() => setEditingId(null)} className="flex-1 bg-slate-200 text-slate-700 rounded-lg py-2 font-semibold hover:bg-slate-300 transition">{t.cancelBtn}</button>
+                          <div className="flex gap-2 pt-2 border-t border-slate-800">
+                            <button onClick={handleUpdate} className="flex-1 bg-yellow-400 hover:bg-yellow-300 text-slate-950 rounded-lg py-2 text-xs font-bold transition cursor-pointer shadow-md shadow-yellow-400/20">{t.saveBtn}</button>
+                            <button onClick={() => handleDelete(med._id)} className="flex-1 bg-red-600 hover:bg-red-700 text-white rounded-lg py-2 text-xs font-semibold transition cursor-pointer">Delete</button>
+                            <button onClick={() => setEditingId(null)} className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg py-2 text-xs font-semibold transition cursor-pointer border border-slate-700">{t.cancelBtn}</button>
                           </div>
                         </div>
                       ) : (
                         <>
-                          <div className="flex justify-between items-start mb-4">
+                          <div className="flex justify-between items-start mb-2">
                             <div>
-                              <h3 className="font-extrabold text-xl text-slate-900">{med.medicineName}</h3>
-                              <p className="text-indigo-600 font-semibold">
+                              <h3 className="font-bold text-base sm:text-lg text-white">{med.medicineName}</h3>
+                              <p className="text-xs sm:text-sm font-medium text-slate-300">
                                 {med.dosage}{/^\d+(\.\d+)?$/.test(String(med.dosage).trim()) ? ' mg' : ''}
                                 {med.tabletsPerDose ? ` (${med.tabletsPerDose} ${med.tabletsPerDose == 1 ? 'tablet' : 'tablets'})` : ''}
-                                <span className="text-slate-400 font-normal"> at {med.reminderTime?.split(",").join(", ")}</span>
+                                <span className="text-slate-400 font-normal"> · Scheduled at {med.reminderTime?.split(",").join(", ")}</span>
                               </p>
                             </div>
                             <div className="text-right">
-                              <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${med.totalTablets <= med.lowStockThreshold ? 'bg-orange-100 text-orange-700 border-2 border-orange-200' : 'bg-emerald-100 text-emerald-700 border-2 border-emerald-200'}`}>
+                              <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold border ${med.totalTablets <= med.lowStockThreshold ? 'bg-amber-950/60 text-amber-300 border-amber-800' : 'bg-slate-800 text-slate-300 border-slate-700'}`}>
                                 {med.totalTablets} {t.leftText}
                               </span>
                             </div>
                           </div>
-                          {med.mealTiming && <p className="text-sm font-bold text-amber-600 mb-1">🍽️ {med.mealTiming}</p>}
-                          {med.injectionSite && <p className="text-sm font-bold text-blue-600 mb-1">💉 {t.siteText} {med.injectionSite}</p>}
-                          <p className="text-sm text-slate-500 mb-5">{med.instructions}</p>
-                          <div className="flex gap-2 pt-3 border-t border-slate-100">
+                          <div className="flex flex-wrap items-center mt-2 mb-2">
+                            {med.mealTiming && (
+                              <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-300 bg-amber-950/40 border border-amber-800/80 px-2.5 py-0.5 rounded-md mr-2">
+                                <svg className="w-3 h-3 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                                <span>{med.mealTiming}</span>
+                              </span>
+                            )}
+                            {med.injectionSite && (
+                              <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-300 bg-blue-950/40 border border-blue-800/80 px-2.5 py-0.5 rounded-md">
+                                <svg className="w-3 h-3 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m18 2 4 4"/><path d="m17 7 3-3"/><path d="M19 9 8.7 19.3c-.4.4-1 .6-1.6.7H3v-4.1c.1-.6.3-1.2.7-1.6L15 4"/><path d="m9 11 4 4"/></svg>
+                                <span>{t.siteText} {med.injectionSite}</span>
+                              </span>
+                            )}
+                          </div>
+                          {med.instructions && <p className="text-xs text-slate-400 mb-4">{med.instructions}</p>}
+                          <div className="flex gap-2 pt-3 border-t border-slate-800">
                             {(() => {
                                const doses = Number(med.dosesPerDay) || 1;
                                const takenCount = loggedToday[med._id] || 0;
                                const isDone = takenCount >= doses;
-                               const btnText = isDone ? 'Logged' : (takenCount > 0 ? `Take (${takenCount}/${doses} done)` : t.takenLabel);
-                               const skipText = isDone ? 'Skipped' : (takenCount > 0 ? `Skip (${takenCount}/${doses} done)` : t.skipBtn);
+                               const btnText = isDone ? 'Logged' : (takenCount > 0 ? `Take (${takenCount}/${doses})` : t.takenLabel);
+                               const skipText = isDone ? 'Skipped' : (takenCount > 0 ? `Skip (${takenCount}/${doses})` : t.skipBtn);
                                
                                return (
                                  <>
-                                   <button onClick={() => markTaken(med)} disabled={isDone} className={`flex-1 px-2 sm:px-3 py-2 rounded-xl text-xs sm:text-sm font-bold shadow-sm transition truncate ${isDone ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/20'}`}>{btnText}</button>
-                                   <button onClick={() => markMissed(med._id, med)} disabled={isDone} className={`flex-1 glass px-2 sm:px-3 py-2 rounded-xl text-xs sm:text-sm font-bold transition border-slate-200 truncate ${isDone ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-white hover:bg-rose-50 text-rose-600 border-rose-200'}`}>{skipText}</button>
+                                   <button onClick={() => markTaken(med)} disabled={isDone} className={`flex-1 h-9 px-3 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center justify-center gap-1.5 ${isDone ? 'bg-slate-900 text-slate-500 border border-slate-800 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-2xs'}`}>
+                                     {!isDone && <span className="font-bold">✓</span>}
+                                     <span>{btnText}</span>
+                                   </button>
+                                   <button onClick={() => markMissed(med._id, med)} disabled={isDone} className={`flex-1 h-9 px-3 rounded-lg text-xs font-semibold transition border cursor-pointer flex items-center justify-center gap-1.5 ${isDone ? 'bg-slate-900 text-slate-600 border border-slate-800 cursor-not-allowed' : 'bg-slate-950 hover:bg-rose-950/60 text-rose-400 border-rose-800/80 shadow-2xs'}`}>
+                                     <span>{skipText}</span>
+                                   </button>
                                  </>
                                )
                             })()}
-                            <button onClick={() => startEdit(med)} className="w-[48px] glass bg-white hover:bg-slate-100 text-slate-600 flex items-center justify-center rounded-xl transition border-slate-200 text-xl">⚙️</button>
+                            <button onClick={() => startEdit(med)} className="w-9 h-9 bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center rounded-lg transition border border-slate-700 cursor-pointer shadow-2xs shrink-0" title="Edit Prescription">
+                              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                              </svg>
+                            </button>
                           </div>
                         </>
                       )}
                     </motion.div>
-                    );
-                  })}
+                  ))}
                 </AnimatePresence>
               </div>
             </div>
@@ -1044,60 +1075,30 @@ function Dashboard() {
 
           {/* RIGHT COLUMN: Usage Chart & Weekly Adherence */}
           <div className="space-y-6 w-full flex flex-col items-stretch">
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
-              className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white p-6 sm:p-7 rounded-[2.5rem] shadow-2xl border border-indigo-500/30 backdrop-blur-xl w-full"
-            >
-              {/* Background ambient lighting effects */}
-              <div className="absolute -top-16 -right-16 w-48 h-48 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
-              <div className="absolute -bottom-16 -left-16 w-48 h-48 bg-purple-500/15 rounded-full blur-3xl pointer-events-none"></div>
-
-              {/* Header */}
-              <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-800/80">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center text-xl text-indigo-400 shadow-inner">
-                    📊
+            <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl">
+              <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-yellow-400/10 border border-yellow-400/30 text-yellow-400 flex items-center justify-center">
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 3v18h18" />
+                      <path d="m19 9-5 5-4-4-3 3" />
+                    </svg>
                   </div>
                   <div>
-                    <h2 className="font-extrabold text-lg tracking-tight text-white">{t.weeklyAdherenceTitle}</h2>
-                    <p className="text-xs text-slate-400 font-medium">Activity trends over time</p>
+                    <h2 className="font-bold text-sm text-white">{t.weeklyAdherenceTitle}</h2>
+                    <p className="text-[11px] text-slate-400">7-day prescription compliance trends</p>
                   </div>
                 </div>
-                <span className="flex items-center gap-1.5 text-[11px] font-extrabold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-3 py-1 rounded-full uppercase tracking-wider">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                  Live
+                <span className="text-[11px] font-semibold text-slate-300 bg-slate-800 border border-slate-700 px-2 py-0.5 rounded">
+                  Last 7 Days
                 </span>
               </div>
 
-              {/* Quick Stat Summary Pills inside Card */}
-              <div className="grid grid-cols-2 gap-3 mb-6">
-                <div className="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-3.5 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-sm">
-                    ✓
-                  </div>
-                  <div>
-                    <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Adherence</p>
-                    <p className="text-lg font-black text-emerald-400">{stats.adherence}%</p>
-                  </div>
-                </div>
-                <div className="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-3.5 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-sm">
-                    💊
-                  </div>
-                  <div>
-                    <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Total Taken</p>
-                    <p className="text-lg font-black text-indigo-300">{stats.taken} doses</p>
-                  </div>
-                </div>
-              </div>
-
               {/* Chart Component Container */}
-              <div className="w-full bg-slate-950/40 border border-slate-800/60 rounded-2xl p-4 shadow-inner">
+              <div className="w-full">
                 <UsageChart key={stats.taken + stats.missed} />
               </div>
-            </motion.div>
+            </div>
           </div>
         </div>
       </div>
@@ -1105,38 +1106,47 @@ function Dashboard() {
       {/* Add Medication Modal */}
       <AnimatePresence>
         {showAddModal && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className="glass bg-white p-6 sm:p-8 rounded-[2.5rem] w-full max-w-2xl max-h-[90vh] overflow-y-auto text-left shadow-2xl relative border-t-8 border-t-indigo-500">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+            <motion.div initial={{ scale: 0.95, y: 15 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 15 }} className="bg-slate-900 border border-slate-800 text-white p-6 sm:p-7 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto text-left shadow-2xl relative">
               {/* Close Button */}
-              <button onClick={() => setShowAddModal(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-600 transition bg-slate-100 hover:bg-slate-200 rounded-full w-8 h-8 flex items-center justify-center font-bold">
+              <button onClick={() => setShowAddModal(false)} className="absolute top-5 right-5 text-slate-400 hover:text-white transition bg-slate-800 hover:bg-slate-700 rounded-lg w-8 h-8 flex items-center justify-center text-sm font-semibold cursor-pointer">
                 ✕
               </button>
 
-              <div className="mb-6 pr-8">
-                <h2 className="font-extrabold text-2xl text-slate-900">
-                  {extractedQueue.length > 0 ? t.reviewScanned : t.addMedTitle}
-                </h2>
+              <div className="mb-5 pr-8">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-7 h-7 rounded-lg bg-yellow-400/10 border border-yellow-400/30 text-yellow-400 flex items-center justify-center">
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 5v14" />
+                      <path d="M5 12h14" />
+                    </svg>
+                  </div>
+                  <h2 className="font-bold text-xl text-white">
+                    {extractedQueue.length > 0 ? t.reviewScanned : t.addMedTitle}
+                  </h2>
+                </div>
                 {extractedQueue.length > 0 && (
-                  <span className="bg-indigo-100 text-indigo-700 text-xs font-bold px-2 py-1 rounded-full mt-2 inline-block">
-                    {queueIndex + 1} of {extractedQueue.length}
+                  <span className="bg-blue-50 border border-blue-200 text-blue-700 text-xs font-semibold px-2.5 py-0.5 rounded-md mt-1 inline-block">
+                    Item {queueIndex + 1} of {extractedQueue.length}
                   </span>
                 )}
+                <p className="text-xs text-slate-400 mt-1">Fill in the prescription details and scheduling parameters below.</p>
               </div>
 
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {renderInput('add', 'medicineName', 'Name', 'text', 'md:col-span-2')}
-                  {renderInput('add', 'dosage', 'Dosage')}
-                  {renderInput('add', 'dosesPerDay', 'Freq/Day', 'number')}
+                  {renderInput('add', 'medicineName', 'Medicine Name', 'text', 'md:col-span-2')}
+                  {renderInput('add', 'dosage', 'Dosage (e.g. 500mg)')}
+                  {renderInput('add', 'dosesPerDay', 'Doses Per Day', 'number')}
                   {renderTimeInputs('add')}
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
-                  {renderInput('add', 'totalTablets', 'Stock', 'number')}
-                  {renderInput('add', 'lowStockThreshold', 'Alert At', 'number')}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t border-slate-800">
+                  {renderInput('add', 'totalTablets', 'Current Stock (Pills)', 'number')}
+                  {renderInput('add', 'lowStockThreshold', 'Low Stock Alert Threshold', 'number')}
                   <div className="md:col-span-2 flex flex-col space-y-1">
-                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Meal Timing</label>
-                    <select value={form.mealTiming || ""} onChange={(e) => setForm({ ...form, mealTiming: e.target.value })} className="border-slate-200 bg-white/50 focus:bg-white text-slate-800 focus:ring-2 focus:ring-indigo-500 rounded-lg p-2.5 outline-none transition shadow-sm">
+                    <label className="text-xs font-semibold text-slate-300">Meal Timing Instruction</label>
+                    <select value={form.mealTiming || ""} onChange={(e) => setForm({ ...form, mealTiming: e.target.value })} className="border border-slate-700 bg-slate-950 text-white text-sm focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 rounded-lg p-2.5 outline-none transition">
                       <option value="">No specific timing</option>
                       <option>Fasting (Empty Stomach)</option>
                       <option>Before Food</option>
@@ -1147,13 +1157,15 @@ function Dashboard() {
                 </div>
 
                 {/* Optional Overrides */}
-                <details className="text-sm text-slate-500 group cursor-pointer outline-none">
-                  <summary className="font-semibold mb-2">{t.advancedDetails}</summary>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+                <details className="text-xs text-slate-400 group cursor-pointer outline-none pt-1">
+                  <summary className="font-semibold text-slate-300 hover:text-white transition flex items-center gap-1.5 py-1">
+                    <span>{t.advancedDetails}</span>
+                  </summary>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2 p-3 bg-slate-950 rounded-xl border border-slate-800">
                     <div className="flex flex-col space-y-1 md:col-span-2">
-                      <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Injection Site</label>
-                      <select value={form.injectionSite} onChange={(e) => setForm({ ...form, injectionSite: e.target.value })} className="border-slate-200 bg-white/50 focus:bg-white text-slate-800 focus:ring-2 focus:ring-indigo-500 rounded-lg p-2.5 outline-none transition shadow-sm">
-                        <option value="">None</option>
+                      <label className="text-xs font-semibold text-slate-300">Injection Site (if applicable)</label>
+                      <select value={form.injectionSite} onChange={(e) => setForm({ ...form, injectionSite: e.target.value })} className="border border-slate-700 bg-slate-900 text-white text-xs focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 rounded-lg p-2 outline-none transition">
+                        <option value="">None / Oral Tablet</option>
                         <option>Left Abdomen</option>
                         <option>Right Abdomen</option>
                         <option>Left Thigh</option>
@@ -1165,12 +1177,17 @@ function Dashboard() {
                   </div>
                 </details>
 
-                <div className="flex gap-2 pt-4">
-                  <button onClick={handleAdd} className="flex-[2] w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-bold shadow-lg shadow-indigo-600/30 transition">
-                    {extractedQueue.length > 0 ? t.saveNextBtn : t.saveMedBtn}
+                <div className="flex gap-2.5 pt-3 border-t border-slate-800">
+                  <button onClick={handleAdd} className="flex-[2] bg-yellow-400 hover:bg-yellow-300 text-slate-950 h-10 px-4 rounded-xl text-sm font-bold transition cursor-pointer shadow-md shadow-yellow-400/20 flex items-center justify-center gap-2">
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    <span>{extractedQueue.length > 0 ? t.saveNextBtn : t.saveMedBtn}</span>
                   </button>
                   {extractedQueue.length > 0 && (
-                    <button onClick={handleNextInQueue} className="flex-1 w-full glass bg-white hover:bg-slate-100 text-slate-700 py-3 rounded-xl font-bold transition">{t.skipBtn}</button>
+                    <button onClick={handleNextInQueue} className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 h-10 px-4 rounded-xl text-sm font-semibold transition cursor-pointer">
+                      {t.skipBtn}
+                    </button>
                   )}
                 </div>
               </div>
@@ -1182,25 +1199,55 @@ function Dashboard() {
       {/* Emergency Modal */}
       <AnimatePresence>
         {showEmergency && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className="glass-dark p-5 sm:p-8 rounded-3xl w-full max-w-md text-center text-white border-rose-500/30 mx-3 sm:mx-0">
-              <div className="w-16 h-16 bg-rose-500/20 text-rose-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-4">🚨</div>
-              <h2 className="text-2xl font-black mb-4">{t.hypoTitle}</h2>
-              <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-left mb-6">
-                <p className="font-bold text-rose-300 mb-2 border-b border-white/10 pb-2">{t.hypoRule}</p>
-                <ul className="text-sm space-y-2 text-slate-300">
-                  <li><span className="text-white mr-2">1.</span>{t.hypoStep1}</li>
-                  <li><span className="text-white mr-2">2.</span>{t.hypoStep2}</li>
-                  <li><span className="text-white mr-2">3.</span>{t.hypoStep3}</li>
-                  <li><span className="text-white mr-2">4.</span>{t.hypoStep4}</li>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+            <motion.div initial={{ scale: 0.95, y: 15 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 15 }} className="bg-slate-900 border border-rose-500/30 p-6 sm:p-7 rounded-2xl w-full max-w-md text-left text-white shadow-2xl mx-3 sm:mx-0">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-rose-500/20 text-rose-400 rounded-xl flex items-center justify-center border border-rose-500/30 shrink-0">
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-white">{t.hypoTitle}</h2>
+                  <p className="text-xs text-rose-300 font-medium">Standard Clinical Protocol: 15-15 Rule</p>
+                </div>
+              </div>
+
+              <div className="bg-slate-800/80 border border-slate-700 rounded-xl p-4 mb-5">
+                <p className="font-semibold text-xs text-rose-300 mb-2.5 pb-2 border-b border-slate-700">{t.hypoRule}</p>
+                <ul className="text-xs space-y-2 text-slate-300">
+                  <li className="flex items-start gap-2">
+                    <span className="w-4 h-4 rounded-full bg-slate-700 text-slate-200 text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">1</span>
+                    <span>{t.hypoStep1}</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="w-4 h-4 rounded-full bg-slate-700 text-slate-200 text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">2</span>
+                    <span>{t.hypoStep2}</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="w-4 h-4 rounded-full bg-slate-700 text-slate-200 text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">3</span>
+                    <span>{t.hypoStep3}</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="w-4 h-4 rounded-full bg-slate-700 text-slate-200 text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">4</span>
+                    <span>{t.hypoStep4}</span>
+                  </li>
                 </ul>
               </div>
-              <a href={`tel:${emergencyContact}`} className="block w-full bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 rounded-xl mb-3 shadow-lg shadow-rose-500/30 transition">
-                📞 {t.callEmergency}
-              </a>
-              <button onClick={() => setShowEmergency(false)} className="w-full bg-white/10 hover:bg-white/20 text-white font-bold py-3 rounded-xl transition">
-                {t.dismissBtn}
-              </button>
+
+              <div className="space-y-2">
+                <a href={`tel:${emergencyContact}`} className="w-full bg-rose-600 hover:bg-rose-700 text-white font-semibold h-11 rounded-xl text-sm flex items-center justify-center gap-2 shadow-sm transition">
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                  </svg>
+                  <span>{t.callEmergency}: {emergencyContact}</span>
+                </a>
+                <button onClick={() => setShowEmergency(false)} className="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold h-10 rounded-xl text-xs transition cursor-pointer">
+                  {t.dismissBtn}
+                </button>
+              </div>
             </motion.div>
           </motion.div>
         )}
@@ -1209,30 +1256,41 @@ function Dashboard() {
       {/* Reminder Modal */}
       <AnimatePresence>
         {activeReminder && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className="glass p-5 sm:p-8 rounded-3xl w-full max-w-md text-center shadow-2xl mx-3 sm:mx-0">
-              <div className={`w-20 h-20 mx-auto rounded-full flex items-center justify-center text-4xl mb-4 ${activeReminder.type === 'time' ? 'bg-indigo-100 text-indigo-500' : 'bg-orange-100 text-orange-500'}`}>
-                {activeReminder.type === "time" ? "⏰" : "⚠️"}
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+            <motion.div initial={{ scale: 0.95, y: 15 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 15 }} className="bg-slate-900 border border-slate-800 text-white p-6 sm:p-7 rounded-2xl w-full max-w-md text-center shadow-2xl mx-3 sm:mx-0">
+              <div className={`w-12 h-12 mx-auto rounded-xl flex items-center justify-center mb-4 ${activeReminder.type === 'time' ? 'bg-yellow-400/20 text-yellow-400 border border-yellow-500/30' : 'bg-amber-950/60 text-amber-300 border border-amber-800'}`}>
+                {activeReminder.type === "time" ? (
+                  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                  </svg>
+                ) : (
+                  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                  </svg>
+                )}
               </div>
-              <h2 className="text-3xl font-black mb-2 text-slate-800">
+              <h2 className="text-xl font-bold mb-1.5 text-white">
                 {activeReminder.type === "time" ? t.medTimeAlert : t.stockAlertTitle}
               </h2>
-              <p className="text-slate-600 text-lg font-medium mb-6">
+              <p className="text-slate-300 text-sm mb-5">
                 {activeReminder.type === "time" ? `${t.medTimeMsg} ${activeReminder.medicineName}.` : `${t.stockAlertMsg} ${activeReminder.medicineName}.`}
               </p>
 
               {activeReminder.type === "stock" && (
-                <div className="mb-6 text-left">
-                  <label className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2 block">{t.refillAmount}</label>
-                  <input type="number" value={takenQty} min="1" onChange={(e) => setTakenQty(Number(e.target.value))} className="w-full text-center text-2xl font-bold border-2 border-slate-200 focus:border-indigo-500 focus:ring-0 rounded-xl p-3 outline-none" />
+                <div className="mb-5 text-left bg-slate-950 p-3.5 rounded-xl border border-slate-800">
+                  <label className="text-xs font-semibold text-slate-300 mb-1.5 block">{t.refillAmount}</label>
+                  <input type="number" value={takenQty} min="1" onChange={(e) => setTakenQty(Number(e.target.value))} className="w-full text-center text-xl font-bold border border-slate-700 bg-slate-900 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 rounded-lg p-2 outline-none" />
                 </div>
               )}
 
-              <div className="flex gap-3">
-                <button onClick={() => { if (activeReminder.type === "stock") handleStockUpdate(activeReminder); else markTaken(activeReminder); }} className="flex-[2] w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-indigo-600/30 transition">
+              <div className="flex gap-2.5">
+                <button onClick={() => { if (activeReminder.type === "stock") handleStockUpdate(activeReminder); else markTaken(activeReminder); }} className="flex-[2] bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-bold h-10 px-4 rounded-xl text-sm transition cursor-pointer shadow-md shadow-yellow-400/20">
                   {t.confirmBtn}
                 </button>
-                <button onClick={handleLaterPopup} className="flex-1 w-full glass bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-xl transition">
+                <button onClick={handleLaterPopup} className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold h-10 px-4 rounded-xl text-sm transition cursor-pointer border border-slate-700">
                   {t.laterBtn}
                 </button>
               </div>
@@ -1244,35 +1302,47 @@ function Dashboard() {
       {/* Low Stock Modal */}
       <AnimatePresence>
         {showLowStockModal && (
-          <motion.div initial={{opacity: 0}} animate={{opacity: 1}} exit={{opacity: 0}} className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <motion.div initial={{scale: 0.9, y: 20}} animate={{scale: 1, y: 0}} exit={{scale: 0.9, y: 20}} className="glass bg-white p-6 sm:p-8 rounded-[2.5rem] w-full max-w-2xl max-h-[90vh] overflow-y-auto text-left shadow-2xl relative border-t-8 border-t-orange-500">
-              <button onClick={() => setShowLowStockModal(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-600 transition bg-slate-100 hover:bg-slate-200 rounded-full w-8 h-8 flex items-center justify-center font-bold">
+          <motion.div initial={{opacity: 0}} animate={{opacity: 1}} exit={{opacity: 0}} className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+            <motion.div initial={{scale: 0.95, y: 15}} animate={{scale: 1, y: 0}} exit={{scale: 0.95, y: 15}} className="bg-slate-900 border border-slate-800 text-white p-6 sm:p-7 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto text-left shadow-2xl relative">
+              <button onClick={() => setShowLowStockModal(false)} className="absolute top-5 right-5 text-slate-400 hover:text-white transition bg-slate-800 hover:bg-slate-700 rounded-lg w-8 h-8 flex items-center justify-center text-sm font-semibold cursor-pointer">
                 ✕
               </button>
 
-              <div className="mb-6 pr-8">
-                <div className="w-12 h-12 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center text-2xl mb-3 shadow-inner">⚠️</div>
-                <h2 className="font-extrabold text-2xl text-slate-900">Low Stock Alerts</h2>
-                <p className="text-slate-500 font-medium mt-1">Review the medications that are currently running low on stock.</p>
+              <div className="mb-5 pr-8">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-7 h-7 bg-amber-950/60 text-amber-300 rounded-lg flex items-center justify-center border border-amber-800/80">
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                      <line x1="12" y1="9" x2="12" y2="13" />
+                      <line x1="12" y1="17" x2="12.01" y2="17" />
+                    </svg>
+                  </div>
+                  <h2 className="font-bold text-xl text-white">Low Stock Inventory Alerts</h2>
+                </div>
+                <p className="text-xs text-slate-400">The following medications have depleted past their minimum safe threshold.</p>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {medications.filter(m => Number(m.totalTablets) <= Number(m.lowStockThreshold)).length === 0 ? (
-                  <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-6 text-center">
-                    <span className="text-3xl block mb-2">🎉</span>
-                    <h3 className="font-bold text-emerald-800">All Good!</h3>
-                    <p className="text-emerald-600 font-medium">None of your medications are low on stock.</p>
+                  <div className="bg-emerald-950/30 border border-emerald-800 rounded-xl p-6 text-center">
+                    <div className="w-10 h-10 rounded-full bg-emerald-950/60 text-emerald-400 border border-emerald-800 flex items-center justify-center mx-auto mb-2">
+                      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    </div>
+                    <h3 className="font-bold text-emerald-300 text-sm">All Inventory In Stock</h3>
+                    <p className="text-emerald-400 text-xs mt-0.5">All active prescriptions meet or exceed required minimum reserves.</p>
                   </div>
                 ) : (
                   medications.filter(m => Number(m.totalTablets) <= Number(m.lowStockThreshold)).sort((a, b) => Number(a.totalTablets) - Number(b.totalTablets)).map(med => (
-                    <div key={med._id} className="border border-orange-200 bg-orange-50/50 rounded-2xl p-4 flex justify-between items-center sm:flex-row flex-col sm:items-center gap-4">
+                    <div key={med._id} className="border border-amber-800/80 bg-amber-950/30 rounded-xl p-4 flex justify-between items-center sm:flex-row flex-col sm:items-center gap-3">
                       <div>
-                        <h3 className="font-black text-slate-800 text-lg">{med.medicineName}</h3>
-                        <p className="text-sm text-slate-500 font-medium">Dosage: <span className="text-slate-700">{med.dosage}</span></p>
+                        <h3 className="font-bold text-white text-sm">{med.medicineName}</h3>
+                        <p className="text-xs text-slate-400 mt-0.5">Dosage: <span className="font-medium text-slate-200">{med.dosage}</span> • Alert at: <span className="font-medium text-slate-200">{med.lowStockThreshold} pills</span></p>
                       </div>
-                      <div className="bg-white px-4 py-2 rounded-xl shadow-sm border border-orange-100 sm:w-auto w-full text-center">
-                        <p className="text-xs uppercase font-bold text-orange-400 mb-0.5">Remaining Stock</p>
-                        <p className="text-xl font-black text-rose-600">{med.totalTablets} <span className="text-sm font-semibold text-rose-400">tablets</span></p>
+                      <div className="bg-slate-950 px-3.5 py-1.5 rounded-lg border border-amber-800/80 sm:w-auto w-full text-center">
+                        <p className="text-[10px] uppercase font-bold text-slate-400">Current Stock</p>
+                        <p className="text-base font-bold text-rose-600">{med.totalTablets} <span className="text-xs font-normal text-slate-500">tablets left</span></p>
                       </div>
                     </div>
                   ))

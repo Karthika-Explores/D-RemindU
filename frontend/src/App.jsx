@@ -12,25 +12,25 @@ const PrivateRoute = ({ children }) => {
 };
 
 function App() {
-  const [showPermissionModal, setShowPermissionModal] = useState(false);
+  const [showPermissionModal, setShowPermissionModal] = useState(() => {
+    if (typeof window !== "undefined" && window.Notification) {
+      return window.Notification.permission === "default";
+    }
+    return false;
+  });
 
   useEffect(() => {
     // Register Service Worker
-    if ("serviceWorker" in navigator) {
+    if (typeof navigator !== "undefined" && navigator.serviceWorker) {
       navigator.serviceWorker.register("/sw.js").then(reg => {
         console.log("Service Worker registered successfully", reg.scope);
       }).catch(err => console.error("SW Registration failed:", err));
     }
-
-    // Check if we need to ask for permissions explicitly
-    if ("Notification" in window && Notification.permission === "default") {
-      setShowPermissionModal(true);
-    }
   }, []);
 
   const requestPermissions = async () => {
-    if ("Notification" in window) {
-      const permission = await Notification.requestPermission();
+    if (typeof window !== "undefined" && window.Notification) {
+      const permission = await window.Notification.requestPermission();
       if (permission === 'granted') {
         setShowPermissionModal(false);
       } else {
@@ -43,24 +43,26 @@ function App() {
   return (
     <>
       {showPermissionModal && (
-        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white p-8 rounded-3xl max-w-sm w-full text-center shadow-2xl relative border-t-8 border-indigo-500">
-            <div className="w-16 h-16 bg-indigo-100 flex items-center justify-center rounded-full mx-auto mb-4 text-3xl">
-              🔔
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-slate-900 border border-slate-800 p-7 rounded-2xl max-w-sm w-full text-center shadow-2xl relative">
+            <div className="w-14 h-14 bg-yellow-400/15 border border-yellow-400/30 flex items-center justify-center rounded-2xl mx-auto mb-4 text-yellow-400 shadow-md">
+              <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
             </div>
-            <h2 className="text-2xl font-extrabold text-slate-800 mb-2">Enable Notifications</h2>
-            <p className="text-slate-500 font-medium text-sm mb-6">
-              To send you medication alerts even when the browser is closed, we need you to grant notification permissions right now at the beginning.
+            <h2 className="text-xl font-bold text-white mb-2 tracking-tight">Enable Medication Alerts</h2>
+            <p className="text-slate-400 font-medium text-xs leading-relaxed mb-6">
+              To deliver punctual dosage reminders even when the browser tab is idle, DRemindU requires push notification permissions.
             </p>
             <button 
               onClick={requestPermissions}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl shadow-lg transition"
+              className="w-full bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-bold py-3 rounded-xl shadow-md shadow-yellow-400/20 transition-all text-sm"
             >
               Allow Notifications
             </button>
             <button 
               onClick={() => setShowPermissionModal(false)}
-              className="w-full mt-3 text-slate-500 font-bold hover:text-slate-700 transition"
+              className="w-full mt-3 text-slate-400 hover:text-slate-200 text-xs font-semibold transition"
             >
               Maybe Later
             </button>

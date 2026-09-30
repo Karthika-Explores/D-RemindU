@@ -1,18 +1,21 @@
 import { useState } from "react";
 import API from "../services/api";
-import { motion } from "framer-motion";
 import { translations } from "../utils/translations";
+import DRemindULogo from "../components/DRemindULogo";
 
 function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
+  const [showPassword, setShowPassword] = useState(false);
   const [language, setLanguage] = useState(localStorage.getItem("language") || "en-US");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
   const t = translations[language] || translations["en-US"];
 
-  const handleLogin = async () => {
+  const handleLogin = async (e) => {
+    if (e) e.preventDefault();
     setErrorMessage("");
+
     if (!form.email || !form.password) {
       setErrorMessage("Please enter both email and password.");
       return;
@@ -25,13 +28,13 @@ function Login() {
       localStorage.setItem("token", res.data.token);
       window.location.href = "/dashboard";
     } catch (error) {
-      let msg = "Error occurred during login.";
+      let msg = "Invalid credentials or server unavailable.";
       if (error.code === "ECONNABORTED" || error.message?.includes("timeout")) {
-        msg = "Request timed out. The server might be waking up or unavailable. Please try again in a few seconds.";
+        msg = "Request timed out. Please try again.";
       } else if (error.response?.data?.message) {
         msg = error.response.data.message;
       } else if (error.message === "Network Error") {
-        msg = "Network Error: Could not reach the server. Please check your connection or verify backend status.";
+        msg = "Unable to connect to the server. Please check your network.";
       }
       setErrorMessage(msg);
     } finally {
@@ -40,111 +43,148 @@ function Login() {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center bg-slate-50 overflow-hidden">
-      {/* Background Shapes */}
-      <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-indigo-500/30 rounded-full blur-3xl opacity-70" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-purple-500/30 rounded-full blur-3xl opacity-70" />
-      <div className="absolute top-[20%] right-[20%] w-64 h-64 bg-blue-500/20 rounded-full blur-3xl" />
-      
-      {/* Language Selector */}
-      <div className="absolute top-6 right-6 z-50">
+    <div className="min-h-screen bg-[#080c14] text-slate-100 flex flex-col justify-between px-4 py-6 sm:py-10">
+      {/* Top Bar: Language & DRemindU Yellow Brand mark */}
+      <header className="w-full max-w-5xl mx-auto flex items-center justify-between">
+        <DRemindULogo size="md" subtitle={true} />
+
         <select
-          className="glass text-sm font-bold text-slate-600 outline-none hover:text-indigo-600 transition cursor-pointer px-4 py-2 rounded-full appearance-none shadow-sm"
+          className="bg-slate-900 border border-slate-700 text-xs font-semibold text-slate-300 rounded-lg px-2.5 py-1.5 outline-none hover:border-slate-600 transition cursor-pointer shadow-xs"
           value={language}
           onChange={(e) => {
             setLanguage(e.target.value);
             localStorage.setItem("language", e.target.value);
           }}
+          title="Select language"
         >
-          <option value="en-US">🇺🇸 English</option>
-          <option value="hi-IN">🇮🇳 Hindi</option>
-          <option value="kn-IN">🇮🇳 Kannada</option>
-          <option value="ta-IN">🇮🇳 Tamil</option>
+          <option value="en-US">English (US)</option>
+          <option value="hi-IN">Hindi (HI)</option>
+          <option value="kn-IN">Kannada (KN)</option>
+          <option value="ta-IN">Tamil (TA)</option>
         </select>
-      </div>
+      </header>
 
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
-        className="glass p-10 rounded-[2rem] shadow-2xl w-full max-w-[400px] z-10 mx-4 border border-white/60"
-      >
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-tr from-indigo-600 via-blue-600 to-sky-500 rounded-3xl shadow-xl shadow-indigo-500/30 mb-4 p-2.5 border border-white/50 relative">
-            <svg viewBox="0 0 120 120" fill="none" className="w-full h-full">
-              <g transform="translate(52, 46) rotate(-35)">
-                <path d="M -16, -26 A 16,16 0 0,1 16, -26 L 16, 0 L -16, 0 Z" fill="#FFFFFF" />
-                <path d="M -16, 0 L 16, 0 L 16, 26 A 16,16 0 0,1 -16, 26 Z" fill="#10B981" />
-                <line x1="-16" y1="0" x2="16" y2="0" stroke="#0F172A" strokeWidth="2.5" opacity="0.2" />
-              </g>
-              <g transform="translate(68, 66)">
-                <circle cx="12" cy="12" r="16" fill="#F59E0B" />
-                <path d="M 12,4 C 8.6,4 6,6.6 6,10 L 6,14 L 4,16 L 4,17 L 20,17 L 20,16 L 18,14 L 18,10 C 18,6.6 15.4,4 12,4 Z M 10,18 C 10,19.1 10.9,20 12,20 C 13.1,20 14,19.1 14,18 Z" fill="#FFFFFF" />
-              </g>
-            </svg>
+      {/* Main Login Card */}
+      <main className="w-full max-w-sm sm:max-w-md mx-auto my-auto py-6">
+        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl shadow-2xl p-6 sm:p-8 backdrop-blur-sm">
+          <div className="mb-6">
+            <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+              Sign in to your account
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-400 mt-1">
+              Access your prescribed medication schedule and active health logs.
+            </p>
           </div>
-          <h2 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-1">D-RemindU</h2>
-          <p className="text-slate-500 font-semibold text-xs tracking-wider uppercase">💊 Smart Medication & Health Companion</p>
+
+          {errorMessage && (
+            <div className="mb-5 p-3.5 rounded-xl bg-red-950/40 border border-red-800 text-red-300 text-xs font-medium flex items-start gap-2.5">
+              <svg className="w-4 h-4 shrink-0 mt-0.5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+              <span>{errorMessage}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                {t.emailLabel || "Email address"}
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect width="20" height="16" x="2" y="4" rx="2" />
+                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+                  </svg>
+                </div>
+                <input
+                  type="email"
+                  autoComplete="email"
+                  placeholder="name@example.com"
+                  className="w-full h-11 bg-slate-950 border border-slate-700/80 pl-10 pr-3.5 rounded-xl text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition"
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-semibold text-slate-300">
+                  {t.passwordLabel || "Password"}
+                </label>
+              </div>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                </div>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
+                  placeholder="••••••••"
+                  className="w-full h-11 bg-slate-950 border border-slate-700/80 pl-10 pr-10 rounded-xl text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition"
+                  value={form.password}
+                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-200 transition cursor-pointer"
+                  title={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? (
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="m9.88 9.88a3 3 0 1 0 4.24 4.24" />
+                      <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
+                      <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
+                      <line x1="2" x2="22" y1="2" y2="22" />
+                    </svg>
+                  ) : (
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full h-11 mt-2 bg-yellow-400 hover:bg-yellow-300 text-slate-950 rounded-xl text-sm font-bold shadow-md shadow-yellow-400/20 hover:shadow-lg hover:shadow-yellow-400/30 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {loading ? (
+                <>
+                  <svg className="w-4 h-4 animate-spin text-slate-950" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  <span>Signing in...</span>
+                </>
+              ) : (
+                <span>{t.signInBtn || "Sign In"}</span>
+              )}
+            </button>
+          </form>
+
+          <div className="mt-6 pt-5 border-t border-slate-800 text-center">
+            <p className="text-xs text-slate-400">
+              {t.noAccountText || "Don't have an account? "}
+              <a href="/register" className="text-yellow-400 font-semibold hover:text-yellow-300 hover:underline">
+                {t.createOneText || "Sign up"}
+              </a>
+            </p>
+          </div>
         </div>
+      </main>
 
-        {errorMessage && (
-          <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm font-semibold">
-            {errorMessage}
-          </div>
-        )}
-
-        <div className="flex flex-col gap-5">
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">{t.emailLabel}</label>
-            <input
-              type="email"
-              placeholder=""
-              className="w-full bg-white/60 border border-slate-200/60 p-3.5 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder:text-slate-400 font-medium text-slate-800"
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-            />
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">{t.passwordLabel}</label>
-            <input
-              type="password"
-              placeholder="••••••••"
-              className="w-full bg-white/60 border border-slate-200/60 p-3.5 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder:text-slate-400 font-medium text-slate-800"
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-            />
-          </div>
-
-          <button
-            onClick={handleLogin}
-            disabled={loading}
-            className={`w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white p-4 rounded-xl font-bold shadow-lg transition-all hover:-translate-y-0.5 mt-2 flex items-center justify-center ${
-              loading ? "opacity-75 cursor-not-allowed" : "hover:from-indigo-700 hover:to-blue-700 shadow-indigo-500/30"
-            }`}
-          >
-            {loading ? (
-              <span className="flex items-center gap-2">
-                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Logging in...
-              </span>
-            ) : (
-              t.signInBtn
-            )}
-          </button>
-        </div>
-
-        <p className="text-center mt-8 text-sm font-semibold text-slate-500">
-          {t.noAccountText}
-          <span 
-            className="text-indigo-600 hover:text-indigo-800 cursor-pointer transition"
-            onClick={() => (window.location.href = "/register")}
-          >
-            {t.createOneText}
-          </span>
-        </p>
-      </motion.div>
+      <div className="py-2" />
     </div>
   );
 }
