@@ -35,7 +35,7 @@ app.use("/api/push", pushRoutes);
 
 // Test route
 app.get("/", (req, res) => {
-  res.send("D RemindU API is running...");
+  res.send("DRemindU API is running...");
 });
 
 // Start Background Services
