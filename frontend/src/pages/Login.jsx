@@ -28,13 +28,15 @@ function Login() {
       localStorage.setItem("token", res.data.token);
       window.location.href = "/dashboard";
     } catch (error) {
-      let msg = "Invalid credentials or server unavailable.";
+      let msg = "Something went wrong. Please try again.";
       if (error.code === "ECONNABORTED" || error.message?.includes("timeout")) {
         msg = "Request timed out. Please try again.";
-      } else if (error.response?.data?.message) {
-        msg = error.response.data.message;
-      } else if (error.message === "Network Error") {
+      } else if (error.message === "Network Error" || !error.response) {
         msg = "Unable to connect to the server. Please check your network.";
+      } else if (error.response?.status === 401) {
+        msg = "Incorrect email or password.";
+      } else if (error.response?.status === 400) {
+        msg = "Invalid request. Please check your details and try again.";
       }
       setErrorMessage(msg);
     } finally {
@@ -134,8 +136,10 @@ function Login() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
+                  onKeyDown={(e) => { if (e.key === "Enter") e.preventDefault(); }}
                   className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-200 transition cursor-pointer"
                   title={showPassword ? "Hide password" : "Show password"}
+                  tabIndex={-1}
                 >
                   {showPassword ? (
                     <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

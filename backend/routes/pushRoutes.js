@@ -45,4 +45,38 @@ router.post("/subscribe", protect, async (req, res) => {
   }
 });
 
+// @route   DELETE /api/push/unsubscribe
+// @desc    Remove this browser's push subscription on logout
+// @access  Private
+router.delete("/unsubscribe", protect, async (req, res) => {
+  try {
+    const { endpoint } = req.body;
+    if (!endpoint) {
+      return res.status(400).json({ message: "Endpoint is required" });
+    }
+
+    const userId = req.user.id || req.user._id || req.user;
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Remove the subscription matching this browser's endpoint
+    const before = (user.pushSubscriptions || []).length;
+    user.pushSubscriptions = (user.pushSubscriptions || []).filter(
+      sub => sub.endpoint !== endpoint
+    );
+
+    if (user.pushSubscriptions.length < before) {
+      await user.save();
+      return res.json({ message: "Subscription removed successfully" });
+    }
+
+    res.json({ message: "No matching subscription found" });
+  } catch (error) {
+    console.error("Push unsubscribe error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 module.exports = router;

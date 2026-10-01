@@ -1,7 +1,6 @@
 const cron = require("node-cron");
 const webpush = require("web-push");
 const Medication = require("../models/Medication");
-const User = require("../models/User");
 
 // Configure web-push
 webpush.setVapidDetails(
@@ -22,23 +21,26 @@ const startCronJobs = () => {
       
       console.log(`[Cron] Checking medications for time: ${currentTimeString}`);
 
-      const medications = await Medication.find({});
-      
+      // Fetch medications with reminder times, populate owner's push subscriptions
+      // in a single query instead of N+1 User.findById calls
+      const medications = await Medication.find({ reminderTime: { $exists: true, $ne: "" } })
+        .populate("userId", "pushSubscriptions");
+
       for (const med of medications) {
         if (!med.reminderTime) continue;
 
         // reminderTime is usually a comma-separated list like "08:00, 14:00"
         const times = med.reminderTime.split(",").map(t => t.trim());
-        
+
         let triggerTime = false;
         if (times.includes(currentTimeString)) triggerTime = true;
 
         if (triggerTime) {
-          // Time matches, find user
-          const user = await User.findById(med.userId);
+          // user data is already populated — no extra DB call needed
+          const user = med.userId;
           if (user && user.pushSubscriptions && user.pushSubscriptions.length > 0) {
             const payload = JSON.stringify({
-              title: "Time for Medication 💊",
+              title: "Time for Medication \uD83D\uDC8A",
               body: `It's time to take your ${med.medicineName} (${med.dosage}).`,
               url: "/dashboard"
             });
@@ -65,6 +67,7 @@ const startCronJobs = () => {
           }
         }
       }
+
     } catch (error) {
       console.error("[Cron] Error processing scheduled push notifications:", error);
     }

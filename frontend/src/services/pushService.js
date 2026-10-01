@@ -42,3 +42,28 @@ export async function subscribeToPushNotifications() {
     console.error("Error subscribing to push notifications:", error);
   }
 }
+
+// Call this on logout — removes THIS browser's subscription from the backend
+// so this device stops receiving push notifications after sign-out
+export async function unsubscribePush() {
+  try {
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
+
+    const reg = await navigator.serviceWorker.ready;
+    const subscription = await reg.pushManager.getSubscription();
+
+    if (subscription) {
+      // Tell backend to remove this endpoint from MongoDB
+      await API.delete("/push/unsubscribe", {
+        data: { endpoint: subscription.endpoint }
+      });
+
+      // Also unsubscribe at the browser level
+      await subscription.unsubscribe();
+      console.log("Push subscription removed on logout.");
+    }
+  } catch (error) {
+    // Non-fatal — logout should still proceed even if this fails
+    console.warn("Could not remove push subscription on logout:", error);
+  }
+}

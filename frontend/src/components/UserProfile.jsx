@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import API from "../services/api";
 import { useNavigate } from "react-router-dom";
 import DRemindULogo from "./DRemindULogo";
+import { unsubscribePush } from "../services/pushService";
 
 function UserProfile() {
   const [user, setUser] = useState(null);
@@ -37,7 +38,10 @@ function UserProfile() {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    // Remove this browser's push subscription from MongoDB first
+    // so it stops receiving notifications after logout
+    await unsubscribePush();
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     navigate("/login");
