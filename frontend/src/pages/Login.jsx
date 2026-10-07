@@ -28,15 +28,18 @@ function Login() {
       localStorage.setItem("token", res.data.token);
       window.location.href = "/dashboard";
     } catch (error) {
+      console.error("Login error:", error, "Response:", error.response);
       let msg = "Something went wrong. Please try again.";
       if (error.code === "ECONNABORTED" || error.message?.includes("timeout")) {
         msg = "Request timed out. Please try again.";
-      } else if (error.message === "Network Error" || !error.response) {
-        msg = "Unable to connect to the server. Please check your network.";
-      } else if (error.response?.status === 401) {
+      } else if (error.response?.status === 401 || error.response?.status === 404) {
         msg = "Incorrect email or password.";
       } else if (error.response?.status === 400) {
         msg = "Invalid request. Please check your details and try again.";
+      } else if (error.response?.status === 500) {
+        msg = "Server error. Please try again later.";
+      } else if (error.message === "Network Error" || !error.response) {
+        msg = "Unable to connect to the server. Please check your network.";
       }
       setErrorMessage(msg);
     } finally {
