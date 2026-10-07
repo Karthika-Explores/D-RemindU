@@ -1,6 +1,7 @@
 const cron = require("node-cron");
 const webpush = require("web-push");
 const Medication = require("../models/Medication");
+const https = require("https");
 
 // Configure web-push
 webpush.setVapidDetails(
@@ -10,6 +11,16 @@ webpush.setVapidDetails(
 );
 
 const startCronJobs = () => {
+  // Self-ping every 14 minutes to prevent Render free tier from sleeping
+  cron.schedule("*/14 * * * *", () => {
+    const url = process.env.RENDER_EXTERNAL_URL || "https://d-remindu.onrender.com";
+    https.get(url, (res) => {
+      console.log(`[KeepAlive] Pinged ${url} — status: ${res.statusCode}`);
+    }).on("error", (err) => {
+      console.error("[KeepAlive] Ping failed:", err.message);
+    });
+  });
+
   // Run every minute
   cron.schedule("* * * * *", async () => {
     try {

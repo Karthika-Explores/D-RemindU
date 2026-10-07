@@ -35,13 +35,16 @@ function Register() {
       alert("Account created successfully. Please sign in.");
       window.location.href = "/login";
     } catch (error) {
-      let msg = "Error occurred during registration.";
+      console.error("Register error:", error, "Response:", error.response);
+      let msg = "Something went wrong. Please try again in a moment.";
       if (error.code === "ECONNABORTED" || error.message?.includes("timeout")) {
-        msg = "Request timed out. Please try again.";
+        msg = "The server took too long to respond. Please wait a moment and try again.";
       } else if (error.response?.data?.message) {
         msg = error.response.data.message;
-      } else if (error.message === "Network Error") {
-        msg = "Unable to connect to the server. Please check your connection.";
+      } else if (error.response?.status === 500) {
+        msg = "Server error. Please try again in a few seconds.";
+      } else if (error.message === "Network Error" || !error.response) {
+        msg = "Unable to connect to the server. The server may be waking up — please try again in 30 seconds.";
       }
       setErrorMessage(msg);
     } finally {
