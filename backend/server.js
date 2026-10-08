@@ -20,9 +20,9 @@ const app = express();
 // Middleware
 app.use(express.json());
 app.use(cors({
-  origin: "*", // This allows your frontend to talk to your backend from any domain
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true
+  origin: "*", // Allows any frontend domain to talk to this backend
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
 app.use("/api/auth", authRoutes);
