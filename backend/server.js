@@ -25,6 +25,7 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
+// Primary API Routes (prefixed with /api)
 app.use("/api/auth", authRoutes);
 app.use("/api/medications", medicationRoutes);
 app.use("/api/logs", logRoutes);
@@ -33,12 +34,21 @@ app.use("/api/prescriptions", prescriptionRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/push", pushRoutes);
 
+// Fallback Routes (without /api prefix, so requests never 404 if VITE_API_URL was set without /api)
+app.use("/auth", authRoutes);
+app.use("/medications", medicationRoutes);
+app.use("/logs", logRoutes);
+app.use("/reports", reportRoutes);
+app.use("/prescriptions", prescriptionRoutes);
+app.use("/user", userRoutes);
+app.use("/push", pushRoutes);
+
 // Test & Health routes
 app.get("/", (req, res) => {
   res.send("DRemindU API is running...");
 });
 
-app.get("/api/ping", (req, res) => {
+app.get(["/api/ping", "/ping"], (req, res) => {
   res.json({ status: "ok", timestamp: Date.now() });
 });
 

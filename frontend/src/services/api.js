@@ -2,16 +2,24 @@ import axios from "axios";
 
 // Dynamically select API base URL depending on environment & hostname
 const getBaseURL = () => {
+  let url = "";
   if (import.meta.env.VITE_API_URL) {
-    return import.meta.env.VITE_API_URL;
-  }
-  if (typeof window !== "undefined") {
+    url = import.meta.env.VITE_API_URL.trim().replace(/\/+$/, "");
+  } else if (typeof window !== "undefined") {
     const hostname = window.location.hostname;
     if (hostname === "localhost" || hostname === "127.0.0.1") {
       return "http://localhost:5000/api";
     }
+    url = "https://d-remindu.onrender.com/api";
+  } else {
+    url = "https://d-remindu.onrender.com/api";
   }
-  return "https://d-remindu.onrender.com/api";
+
+  // Ensure baseURL always includes /api (fixes 404 if Vercel VITE_API_URL was set without /api)
+  if (!url.endsWith("/api")) {
+    url = `${url}/api`;
+  }
+  return url;
 };
 
 const API = axios.create({
