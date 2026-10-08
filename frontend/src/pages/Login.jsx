@@ -1,9 +1,11 @@
-import { useState } from "react";
-import API from "../services/api";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import API, { pingBackend } from "../services/api";
 import { translations } from "../utils/translations";
 import DRemindULogo from "../components/DRemindULogo";
 
 function Login() {
+  const navigate = useNavigate();
   const [form, setForm] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [language, setLanguage] = useState(localStorage.getItem("language") || "en-US");
@@ -12,40 +14,49 @@ function Login() {
 
   const t = translations[language] || translations["en-US"];
 
+  useEffect(() => {
+    // Pre-warm the backend immediately upon entering the login page
+    pingBackend();
+  }, []);
+
   const handleLogin = async (e) => {
     if (e) e.preventDefault();
     setErrorMessage("");
 
-    if (!form.email || !form.password) {
+    if (!form.email?.trim() || !form.password) {
       setErrorMessage("Please enter both email and password.");
       return;
     }
 
     setLoading(true);
     try {
-      const res = await API.post("/auth/login", form);
+      const payload = {
+        email: form.email.trim().toLowerCase(),
+        password: form.password
+      };
+      const res = await API.post("/auth/login", payload);
       localStorage.setItem("user", JSON.stringify(res.data));
       localStorage.setItem("token", res.data.token);
-      window.location.href = "/dashboard";
+      navigate("/dashboard");
     } catch (error) {
       console.error("Login error:", error, "Response:", error.response);
       let msg = "Server is waking up — please wait 30 seconds and try again.";
       const status = error.response?.status;
       const data = error.response?.data;
-      if (error.code === "ECONNABORTED" || error.message?.includes("timeout")) {
-        msg = "Request timed out. Please try again.";
+      if (data?.message) {
+        msg = data.message;
+      } else if (error.code === "ECONNABORTED" || error.message?.includes("timeout")) {
+        msg = "The server took too long to respond. Please wait a moment and try again.";
       } else if (!error.response || error.message === "Network Error") {
-        msg = "Unable to reach the server. Please check your connection or try again in 30 seconds.";
+        msg = "Unable to reach the server. If this is the free cloud server, it is waking up from sleep. Please wait 30 seconds and try again.";
       } else if (status === 502 || status === 503 || status === 504) {
         msg = "The server is starting up — please wait 30 seconds and try again.";
       } else if (status === 401 || status === 404) {
         msg = "Incorrect email or password.";
-      } else if (typeof data?.message === "string") {
-        msg = data.message;
       } else if (status === 400) {
         msg = "Invalid request. Please check your details and try again.";
       } else if (status === 500) {
-        msg = "Server error. Please try again later.";
+        msg = "Server error. Please try again in a few moments.";
       }
       setErrorMessage(msg);
     } finally {
@@ -189,9 +200,9 @@ function Login() {
           <div className="mt-6 pt-5 border-t border-slate-800 text-center">
             <p className="text-xs text-slate-400">
               {t.noAccountText || "Don't have an account? "}
-              <a href="/register" className="text-yellow-400 font-semibold hover:text-yellow-300 hover:underline">
+              <Link to="/register" className="text-yellow-400 font-semibold hover:text-yellow-300 hover:underline">
                 {t.createOneText || "Sign up"}
-              </a>
+              </Link>
             </p>
           </div>
         </div>

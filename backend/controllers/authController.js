@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 
 // Generate Token
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
+  return jwt.sign({ id }, process.env.JWT_SECRET || "default_jwt_secret", {
     expiresIn: "7d"
   });
 };
@@ -12,28 +12,44 @@ const generateToken = (id) => {
 // ✅ Register User
 const registerUser = async (req, res) => {
   try {
-    const { name, email, password, age, weight, glucoseLevel, emergencyContact } = req.body;
+    let { name, email, password, age, weight, glucoseLevel, emergencyContact } = req.body;
+
+    if (!name || !email || !password || age === undefined || age === null || age === "") {
+      return res.status(400).json({ message: "Please fill in all required fields (Name, Email, Password, Age)." });
+    }
+
+    email = String(email).trim().toLowerCase();
+    name = String(name).trim();
 
     const userExists = await User.findOne({ email });
     if (userExists) {
-      return res.status(400).json({ message: "User already exists" });
+      return res.status(400).json({ message: "An account with this email already exists." });
     }
 
-    if (age && Number(age) > 150) {
-      return res.status(400).json({ message: "Age cannot exceed 150 years" });
+    const parsedAge = Number(age);
+    if (isNaN(parsedAge) || parsedAge <= 0 || parsedAge > 150) {
+      return res.status(400).json({ message: "Please enter a valid age between 1 and 150." });
     }
 
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    const hashedPassword = await bcrypt.hash(String(password), salt);
+
+    const parsedWeight = (weight !== undefined && weight !== null && weight !== "" && !isNaN(Number(weight)))
+      ? Number(weight)
+      : null;
+
+    const parsedGlucose = (glucoseLevel !== undefined && glucoseLevel !== null && glucoseLevel !== "" && !isNaN(Number(glucoseLevel)))
+      ? Number(glucoseLevel)
+      : null;
 
     const user = await User.create({
       name,
       email,
       password: hashedPassword,
-      age,
-      weight,
-      glucoseLevel,
-      emergencyContact
+      age: parsedAge,
+      weight: parsedWeight,
+      glucoseLevel: parsedGlucose,
+      emergencyContact: emergencyContact ? String(emergencyContact).trim() : ""
     });
 
     res.status(201).json({
@@ -48,18 +64,25 @@ const registerUser = async (req, res) => {
       token: generateToken(user._id)
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Register error:", error);
+    res.status(500).json({ message: error.message || "Registration failed. Please try again." });
   }
 };
 
 // ✅ Login User
 const loginUser = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    let { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ message: "Please provide both email and password." });
+    }
+
+    email = String(email).trim().toLowerCase();
 
     const user = await User.findOne({ email });
 
-    if (user && (await bcrypt.compare(password, user.password))) {
+    if (user && (await bcrypt.compare(String(password), user.password))) {
       res.json({
         _id: user._id,
         name: user.name,
@@ -72,10 +95,11 @@ const loginUser = async (req, res) => {
         token: generateToken(user._id)
       });
     } else {
-      res.status(401).json({ message: "Invalid email or password" });
+      res.status(401).json({ message: "Invalid email or password." });
     }
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Login error:", error);
+    res.status(500).json({ message: error.message || "Login failed. Please try again." });
   }
 };
 

@@ -33,9 +33,13 @@ app.use("/api/prescriptions", prescriptionRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/push", pushRoutes);
 
-// Test route
+// Test & Health routes
 app.get("/", (req, res) => {
   res.send("DRemindU API is running...");
+});
+
+app.get("/api/ping", (req, res) => {
+  res.json({ status: "ok", timestamp: Date.now() });
 });
 
 // Start Background Services

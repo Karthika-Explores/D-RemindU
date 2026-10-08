@@ -1,9 +1,11 @@
-import { useState } from "react";
-import API from "../services/api";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import API, { pingBackend } from "../services/api";
 import { translations } from "../utils/translations";
 import DRemindULogo from "../components/DRemindULogo";
 
 function Register() {
+  const navigate = useNavigate();
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -21,38 +23,55 @@ function Register() {
 
   const t = translations[language] || translations["en-US"];
 
+  useEffect(() => {
+    // Pre-warm the backend immediately upon entering the registration page
+    pingBackend();
+  }, []);
+
   const handleRegister = async (e) => {
     if (e) e.preventDefault();
     setErrorMessage("");
+    setDebugInfo("");
 
-    if (!form.name || !form.email || !form.password || !form.age || !form.emergencyContact) {
-      setErrorMessage("Please complete all required fields (marked with an asterisk).");
+    if (!form.name?.trim() || !form.email?.trim() || !form.password || !form.age) {
+      setErrorMessage("Please complete all required fields (Name, Email, Password, Age).");
       return;
     }
 
+    const payload = {
+      name: form.name.trim(),
+      email: form.email.trim().toLowerCase(),
+      password: form.password,
+      age: Number(form.age),
+      emergencyContact: form.emergencyContact ? form.emergencyContact.trim() : "",
+      ...(form.weight && String(form.weight).trim() !== "" ? { weight: Number(form.weight) } : {}),
+      ...(form.glucoseLevel && String(form.glucoseLevel).trim() !== "" ? { glucoseLevel: Number(form.glucoseLevel) } : {})
+    };
+
     setLoading(true);
     try {
-      await API.post("/auth/register", form);
+      await API.post("/auth/register", payload);
       alert("Account created successfully. Please sign in.");
-      window.location.href = "/login";
+      navigate("/login");
     } catch (error) {
       console.error("Register error:", error, "Response:", error.response);
       const status = error.response?.status;
       const data = error.response?.data;
-      setDebugInfo(`status=${status ?? "none"} | data=${JSON.stringify(data) ?? "none"} | msg=${error.message}`);
+      setDebugInfo(`status=${status ?? "none"} | msg=${data?.message || error.message}`);
+
       let msg = "Server is waking up — please wait 30 seconds and try again.";
-      if (error.code === "ECONNABORTED" || error.message?.includes("timeout")) {
+      if (data?.message) {
+        msg = String(data.message);
+      } else if (error.code === "ECONNABORTED" || error.message?.includes("timeout")) {
         msg = "The server took too long to respond. Please wait a moment and try again.";
       } else if (!error.response || error.message === "Network Error") {
-        msg = "Unable to reach the server. Please check your connection or try again in 30 seconds.";
+        msg = "Unable to reach the server. If this is the free cloud server, it is waking up from sleep. Please wait 30 seconds and try again.";
       } else if (status === 502 || status === 503 || status === 504) {
         msg = "The server is starting up — please wait 30 seconds and try again.";
-      } else if (data?.message) {
-        msg = String(data.message);
+      } else if (status >= 400 && status < 500) {
+        msg = data?.message || "Registration failed. Please check your details and try again.";
       } else if (status === 500) {
-        msg = "Server error. Please try again in a few seconds.";
-      } else if (status >= 400) {
-        msg = "Registration failed. Please check your details and try again.";
+        msg = data?.message || "Server error. Please try again in a few seconds.";
       }
       setErrorMessage(msg);
     } finally {
@@ -286,9 +305,9 @@ function Register() {
           <div className="mt-6 pt-5 border-t border-slate-800 text-center">
             <p className="text-xs text-slate-400">
               {t.hasAccountText || "Already registered? "}
-              <a href="/login" className="text-yellow-400 font-semibold hover:text-yellow-300 hover:underline">
+              <Link to="/login" className="text-yellow-400 font-semibold hover:text-yellow-300 hover:underline">
                 {t.logInText || "Sign in"}
-              </a>
+              </Link>
             </p>
           </div>
         </div>

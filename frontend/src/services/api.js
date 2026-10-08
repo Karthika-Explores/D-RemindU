@@ -16,7 +16,7 @@ const getBaseURL = () => {
 
 const API = axios.create({
   baseURL: getBaseURL(),
-  timeout: 30000, // 30s timeout to allow cold-booting backends while catching dead connections
+  timeout: 60000, // 60s timeout to allow cold-booting Render instances
 });
 
 // Interceptor to automatically attach JWT token
@@ -29,5 +29,14 @@ API.interceptors.request.use((req) => {
 }, (error) => {
   return Promise.reject(error);
 });
+
+// Helper to pre-warm the backend if sleeping
+export const pingBackend = () => {
+  try {
+    API.get("/ping").catch(() => {});
+  } catch (err) {
+    // Ignore ping errors
+  }
+};
 
 export default API;
