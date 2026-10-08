@@ -17,6 +17,7 @@ function Register() {
   const [language, setLanguage] = useState(localStorage.getItem("language") || "en-US");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [debugInfo, setDebugInfo] = useState("");
 
   const t = translations[language] || translations["en-US"];
 
@@ -36,17 +37,18 @@ function Register() {
       window.location.href = "/login";
     } catch (error) {
       console.error("Register error:", error, "Response:", error.response);
-      let msg = "Server is waking up — please wait 30 seconds and try again.";
       const status = error.response?.status;
       const data = error.response?.data;
+      setDebugInfo(`status=${status ?? "none"} | data=${JSON.stringify(data) ?? "none"} | msg=${error.message}`);
+      let msg = "Server is waking up — please wait 30 seconds and try again.";
       if (error.code === "ECONNABORTED" || error.message?.includes("timeout")) {
         msg = "The server took too long to respond. Please wait a moment and try again.";
       } else if (!error.response || error.message === "Network Error") {
         msg = "Unable to reach the server. Please check your connection or try again in 30 seconds.";
       } else if (status === 502 || status === 503 || status === 504) {
         msg = "The server is starting up — please wait 30 seconds and try again.";
-      } else if (typeof data?.message === "string") {
-        msg = data.message;
+      } else if (data?.message) {
+        msg = String(data.message);
       } else if (status === 500) {
         msg = "Server error. Please try again in a few seconds.";
       } else if (status >= 400) {
@@ -93,11 +95,16 @@ function Register() {
           </div>
 
           {errorMessage && (
-            <div className="mb-5 p-3.5 rounded-xl bg-red-950/40 border border-red-800 text-red-300 text-xs font-medium flex items-start gap-2.5">
+            <div className="mb-2 p-3.5 rounded-xl bg-red-950/40 border border-red-800 text-red-300 text-xs font-medium flex items-start gap-2.5">
               <svg className="w-4 h-4 shrink-0 mt-0.5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
               </svg>
               <span>{errorMessage}</span>
+            </div>
+          )}
+          {debugInfo && (
+            <div className="mb-4 p-2 rounded bg-slate-950 border border-slate-700 text-yellow-400 text-[10px] font-mono break-all">
+              🔍 {debugInfo}
             </div>
           )}
 
