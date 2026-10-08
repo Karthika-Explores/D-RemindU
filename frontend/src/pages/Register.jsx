@@ -36,15 +36,21 @@ function Register() {
       window.location.href = "/login";
     } catch (error) {
       console.error("Register error:", error, "Response:", error.response);
-      let msg = "Something went wrong. Please try again in a moment.";
+      let msg = "Server is waking up — please wait 30 seconds and try again.";
+      const status = error.response?.status;
+      const data = error.response?.data;
       if (error.code === "ECONNABORTED" || error.message?.includes("timeout")) {
         msg = "The server took too long to respond. Please wait a moment and try again.";
-      } else if (error.response?.data?.message) {
-        msg = error.response.data.message;
-      } else if (error.response?.status === 500) {
+      } else if (!error.response || error.message === "Network Error") {
+        msg = "Unable to reach the server. Please check your connection or try again in 30 seconds.";
+      } else if (status === 502 || status === 503 || status === 504) {
+        msg = "The server is starting up — please wait 30 seconds and try again.";
+      } else if (typeof data?.message === "string") {
+        msg = data.message;
+      } else if (status === 500) {
         msg = "Server error. Please try again in a few seconds.";
-      } else if (error.message === "Network Error" || !error.response) {
-        msg = "Unable to connect to the server. The server may be waking up — please try again in 30 seconds.";
+      } else if (status >= 400) {
+        msg = "Registration failed. Please check your details and try again.";
       }
       setErrorMessage(msg);
     } finally {

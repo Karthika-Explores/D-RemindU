@@ -29,17 +29,23 @@ function Login() {
       window.location.href = "/dashboard";
     } catch (error) {
       console.error("Login error:", error, "Response:", error.response);
-      let msg = "Something went wrong. Please try again.";
+      let msg = "Server is waking up — please wait 30 seconds and try again.";
+      const status = error.response?.status;
+      const data = error.response?.data;
       if (error.code === "ECONNABORTED" || error.message?.includes("timeout")) {
         msg = "Request timed out. Please try again.";
-      } else if (error.response?.status === 401 || error.response?.status === 404) {
+      } else if (!error.response || error.message === "Network Error") {
+        msg = "Unable to reach the server. Please check your connection or try again in 30 seconds.";
+      } else if (status === 502 || status === 503 || status === 504) {
+        msg = "The server is starting up — please wait 30 seconds and try again.";
+      } else if (status === 401 || status === 404) {
         msg = "Incorrect email or password.";
-      } else if (error.response?.status === 400) {
+      } else if (typeof data?.message === "string") {
+        msg = data.message;
+      } else if (status === 400) {
         msg = "Invalid request. Please check your details and try again.";
-      } else if (error.response?.status === 500) {
+      } else if (status === 500) {
         msg = "Server error. Please try again later.";
-      } else if (error.message === "Network Error" || !error.response) {
-        msg = "Unable to connect to the server. Please check your network.";
       }
       setErrorMessage(msg);
     } finally {
